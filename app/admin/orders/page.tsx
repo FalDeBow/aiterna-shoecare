@@ -69,18 +69,24 @@ export default function OrderListPage() {
       <div className="max-w-4xl mx-auto space-y-5">
         
         {/* Navigation Bar Top */}
-        <div className="bg-slate-900 p-2 flex rounded-2xl border border-slate-800 text-xs font-bold">
+        <div className="bg-slate-900 p-2 flex rounded-2xl border border-slate-800 text-xs font-bold gap-1">
           <Link
             href="/admin"
             className="flex-1 py-2.5 text-center text-slate-400 hover:text-white transition"
           >
-            + Kasir Baru
+            + Kasir
           </Link>
           <Link
             href="/admin/orders"
             className="flex-1 py-2.5 text-center bg-emerald-600 text-white rounded-xl shadow transition"
           >
             Daftar Pesanan ({orders.length})
+          </Link>
+          <Link
+            href="/admin/reports"
+            className="flex-1 py-2.5 text-center text-slate-400 hover:text-white transition"
+          >
+            Laporan Omzet
           </Link>
         </div>
 

@@ -119,18 +119,24 @@ export default function AdminPOS() {
       <div className="max-w-md mx-auto bg-slate-900 rounded-2xl shadow-2xl overflow-hidden border border-slate-800">
         
         {/* Navigation Bar Header */}
-        <div className="bg-slate-950 p-2 flex border-b border-slate-800 text-xs font-bold">
+        <div className="bg-slate-950 p-2 flex border-b border-slate-800 text-xs font-bold gap-1">
           <Link
             href="/admin"
             className="flex-1 py-2.5 text-center bg-emerald-600 text-white rounded-xl shadow transition"
           >
-            + Kasir Baru
+            + Kasir
           </Link>
           <Link
             href="/admin/orders"
             className="flex-1 py-2.5 text-center text-slate-400 hover:text-white transition"
           >
             Daftar Pesanan
+          </Link>
+          <Link
+            href="/admin/reports"
+            className="flex-1 py-2.5 text-center text-slate-400 hover:text-white transition"
+          >
+            Laporan Omzet
           </Link>
         </div>
 
