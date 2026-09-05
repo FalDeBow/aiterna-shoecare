@@ -196,12 +196,20 @@ export default function OrderListPage() {
                       💬 Kirim WA
                     </button>
                     <a
+                      href={`/admin/print/${item.no_nota}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex-1 py-2 text-center bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold transition"
+                    >
+                      🖨️ Cetak Struk
+                    </a>
+                    <a
                       href={`/track/${item.no_nota}`}
                       target="_blank"
                       rel="noreferrer"
-                      className="flex-1 py-2 text-center bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold transition"
+                      className="flex-1 py-2 text-center bg-slate-800/50 hover:bg-slate-700 text-slate-400 rounded-xl text-xs font-bold transition"
                     >
-                      🔗 Cek Tracking
+                      🔗 Tracking
                     </a>
                   </div>
                 </div>
