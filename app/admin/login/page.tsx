@@ -1,37 +1,36 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { STAFF_LIST } from '@/lib/auth-config';
 
 export default function MultiUserLoginPage() {
   const [pin, setPin] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
-  const router = useRouter();
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
+    setLoading(true);
 
-    // Cari staf berdasarkan PIN
-    const foundStaff = STAFF_LIST.find((s) => s.pin === pin);
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pin }),
+      });
 
-    if (foundStaff) {
-      // Set Cookie Akses selama 1 Hari
-      document.cookie = 'aiterna_admin_token=authenticated; path=/; max-age=86400';
-      document.cookie = `aiterna_staff_role=${foundStaff.role}; path=/; max-age=86400`;
-      document.cookie = `aiterna_staff_name=${encodeURIComponent(foundStaff.nama)}; path=/; max-age=86400`;
+      const data = await res.json();
 
-      // Redirect Sesuai Role
-      if (foundStaff.role === 'OPS') {
-        router.push('/admin/orders'); // Tim Ops langsung ke antrean
+      if (res.ok && data.success) {
+        window.location.href = data.redirectUrl;
       } else {
-        router.push('/admin');        // Owner & Kasir ke POS Kasir
+        setErrorMsg(data.message || 'PIN Staf Tidak Dikenali!');
+        setPin('');
       }
-    } else {
-      setErrorMsg('PIN Staf Tidak Dikenali!');
-      setPin('');
-    }
+    } catch (err) {
+      setErrorMsg('Gagal terhubung ke server.');
+    } font-sans
+      setLoading(false);
   };
 
   return (
@@ -54,6 +53,7 @@ export default function MultiUserLoginPage() {
             placeholder="••••"
             className="w-full bg-zinc-950 border border-zinc-800 text-center text-3xl font-black p-3.5 rounded-2xl tracking-widest text-yellow-400 focus:outline-none focus:border-yellow-400"
             autoFocus
+            disabled={loading}
           />
 
           {errorMsg && (
@@ -64,9 +64,10 @@ export default function MultiUserLoginPage() {
 
           <button
             type="submit"
-            className="w-full bg-yellow-400 hover:bg-yellow-300 text-zinc-950 font-black py-3.5 rounded-2xl transition active:scale-95 uppercase tracking-wide text-xs"
+            disabled={loading}
+            className="w-full bg-yellow-400 hover:bg-yellow-300 text-zinc-950 font-black py-3.5 rounded-2xl transition active:scale-95 uppercase tracking-wide text-xs disabled:opacity-50"
           >
-            MASUK PORTAL
+            {loading ? 'MEMPROSES...' : 'MASUK PORTAL'}
           </button>
         </form>
 
