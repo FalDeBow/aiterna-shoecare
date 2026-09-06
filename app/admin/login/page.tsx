@@ -29,8 +29,9 @@ export default function MultiUserLoginPage() {
       }
     } catch (err) {
       setErrorMsg('Gagal terhubung ke server.');
-    } font-sans
+    } finally {
       setLoading(false);
+    }
   };
 
   return (
