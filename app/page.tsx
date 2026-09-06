@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
-export default function PublicLandingPage() {
+export default function StorytellingLandingPage() {
   const router = useRouter();
 
   // State Tracking Nota
@@ -28,134 +28,226 @@ export default function PublicLandingPage() {
     const pesan =
       `Halo Aiterna Shoecare! Saya ingin konsultasi/booking perawatan sepatu:\n\n` +
       `• Nama: *${nama}*\n` +
-      `• Merek/Seri Sepatu: *${sepatu}*\n` +
-      `• Layanan yang Diberikan: *${layanan}*\n` +
-      (catatan ? `• Catatan/Kondisi: _${catatan}_\n\n` : `\n`) +
-      `Mohon informasi estimasi waktu pengerjaan dan lokasi toko. Terima kasih!`;
+      `• Sepatu: *${sepatu}*\n` +
+      `• Treatment: *${layanan}*\n` +
+      (catatan ? `• Catatan: _${catatan}_\n\n` : `\n`) +
+      `Mohon info lokasi dan estimasi pengerjaan. Terima kasih!`;
 
     const waUrl = `https://wa.me/6281234567890?text=${encodeURIComponent(pesan)}`;
     window.open(waUrl, '_blank');
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-emerald-500 selection:text-white">
-      {/* Navbar Publik */}
-      <header className="sticky top-0 z-50 bg-slate-950/80 backdrop-blur-md border-b border-slate-800/80">
-        <div className="max-w-6xl mx-auto px-4 py-3.5 flex justify-between items-center">
-          <Link href="/" className="flex items-center gap-2">
-            <span className="text-xl font-black tracking-wider text-white">AITERNA</span>
-            <span className="text-[10px] bg-emerald-500/10 text-emerald-400 font-bold px-2 py-0.5 rounded border border-emerald-500/20">
-              SHOECARE
-            </span>
+    <div className="min-h-screen bg-[#0F0E0C] text-stone-200 font-sans selection:bg-amber-500 selection:text-black">
+      {/* Top Banner Promotion */}
+      <div className="bg-gradient-to-r from-amber-600 via-emerald-600 to-amber-600 text-black text-[11px] font-bold py-1.5 px-4 text-center tracking-wide">
+        ✨ PROMO MEMBER BARU: Dapatkan Bonus 10 Poin Pertama Saat Mendaftar di Member Circle!
+      </div>
+
+      {/* Navbar Premium */}
+      <header className="sticky top-0 z-50 bg-[#0F0E0C]/90 backdrop-blur-md border-b border-stone-800/80">
+        <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+          <Link href="/" className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center font-black text-black text-sm shadow-lg shadow-amber-500/20">
+              A
+            </div>
+            <div>
+              <span className="text-lg font-black tracking-widest text-stone-100 block leading-none">
+                AITERNA
+              </span>
+              <span className="text-[9px] text-amber-500/90 tracking-widest font-bold block mt-0.5">
+                SHOECARE ATELIER
+              </span>
+            </div>
           </Link>
 
-          <nav className="hidden md:flex items-center gap-6 text-xs font-semibold text-slate-400">
-            <a href="#layanan" className="hover:text-emerald-400 transition">Layanan & Harga</a>
-            <a href="#tracking" className="hover:text-emerald-400 transition">Cek Status Nota</a>
-            <a href="#portofolio" className="hover:text-emerald-400 transition">Portofolio</a>
-            <a href="#konsultasi" className="hover:text-emerald-400 transition">Konsultasi WA</a>
-            <a href="#lokasi" className="hover:text-emerald-400 transition">Lokasi Workshop</a>
+          <nav className="hidden md:flex items-center gap-7 text-xs font-medium text-stone-400">
+            <a href="#story" className="hover:text-amber-400 transition">Cerita Kami</a>
+            <a href="#proses" className="hover:text-amber-400 transition">Proses Treatment</a>
+            <a href="#layanan" className="hover:text-amber-400 transition">Katalog Layanan</a>
+            <Link href="/member" className="text-amber-400 font-bold hover:text-amber-300 transition flex items-center gap-1">
+              ⭐ Membership
+            </Link>
+            <a href="#tracking" className="hover:text-amber-400 transition">Cek Nota Live</a>
           </nav>
 
           <a
             href="#konsultasi"
-            className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow-lg shadow-emerald-600/20"
+            className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-stone-950 text-xs font-extrabold px-4 py-2.5 rounded-xl transition shadow-lg shadow-amber-500/10"
           >
-            Konsultasi Sekarang
+            Konsultasi Sepatu
           </a>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="relative pt-12 pb-16 px-4 max-w-5xl mx-auto text-center space-y-6">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900 border border-slate-800 text-xs font-medium text-emerald-400">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-          Premium Sneaker Care & Live Order Tracking
+      {/* Bab 1: Hero Section (Emosi & Story) */}
+      <section className="relative pt-16 pb-20 px-4 max-w-5xl mx-auto text-center space-y-8">
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-stone-900/90 border border-amber-500/30 text-xs font-semibold text-amber-400 shadow-inner">
+          <span>👟</span> Premium Footwear Restoration & Care
         </div>
 
-        <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight max-w-3xl mx-auto">
-          Rawat Sepatu Kesayangan Tampil Fresh & Bersih Seperti Baru
+        <h1 className="text-4xl sm:text-6xl font-black text-stone-100 tracking-tight leading-[1.15] max-w-4xl mx-auto">
+          Setiap Sepatu Punya Cerita.{' '}
+          <span className="bg-gradient-to-r from-amber-400 via-amber-200 to-emerald-400 bg-clip-text text-transparent">
+            Kami Merawat Kenangannya.
+          </span>
         </h1>
 
-        <p className="text-sm sm:text-base text-slate-400 max-w-2xl mx-auto leading-relaxed">
-          Pembersihan mendalam menggunakan cairan ramah material khusus (Suede, Leather, Canvas, Mesh). Dilengkapi sistem pelacakan pengerjaan secara transparan.
+        <p className="text-sm sm:text-lg text-stone-400 max-w-2xl mx-auto leading-relaxed font-light">
+          Jangan biarkan noda, debu, dan oksidasi merusak sepatu favoritmu. Kami mengembalikan kesegaran sepatu kesayangan dengan metode *artisan care* dan transparansi *live tracking*.
         </p>
 
-        {/* Cek Status Nota Widget */}
-        <div id="tracking" className="pt-4 max-w-lg mx-auto">
-          <form onSubmit={handleTrackSubmit} className="bg-slate-900 border border-slate-800 p-2.5 rounded-2xl shadow-xl flex gap-2">
-            <input
-              type="text"
-              placeholder="Masukkan No. Nota (Contoh: AIT-260906-123)"
-              value={trackNota}
-              onChange={(e) => setTrackNota(e.target.value)}
-              className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 uppercase"
-            />
-            <button
-              type="submit"
-              className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs sm:text-sm font-bold px-4 py-2.5 rounded-xl transition whitespace-nowrap"
-            >
-              Cek Status
-            </button>
-          </form>
-          <p className="text-[11px] text-slate-500 mt-2">
-            Sepatumu sedang dicuci? Masukkan nomor nota untuk memantau pengerjaan secara langsung.
-          </p>
+        {/* Live Tracking Quick Bar */}
+        <div id="tracking" className="pt-6 max-w-xl mx-auto">
+          <div className="bg-stone-900/90 border border-stone-800 p-3 rounded-2xl shadow-2xl space-y-2">
+            <form onSubmit={handleTrackSubmit} className="flex gap-2">
+              <input
+                type="text"
+                placeholder="Ketik No. Nota (Contoh: AIT-260906-123)"
+                value={trackNota}
+                onChange={(e) => setTrackNota(e.target.value)}
+                className="flex-1 bg-stone-950 border border-stone-800 rounded-xl px-4 py-3 text-xs sm:text-sm text-stone-100 placeholder-stone-500 focus:outline-none focus:border-amber-500 uppercase font-mono"
+              />
+              <button
+                type="submit"
+                className="bg-amber-500 hover:bg-amber-400 text-stone-950 text-xs sm:text-sm font-black px-5 py-3 rounded-xl transition whitespace-nowrap shadow-md"
+              >
+                Cek Progres 🔍
+              </button>
+            </form>
+            <p className="text-[11px] text-stone-500 text-left px-1">
+              💡 Pelanggan setia? Masukkan nomor nota transaksi untuk memantau pengerjaan secara langsung.
+            </p>
+          </div>
         </div>
       </section>
 
-      {/* Pricing & Services */}
-      <section id="layanan" className="py-16 px-4 bg-slate-900/50 border-y border-slate-800/80">
-        <div className="max-w-5xl mx-auto space-y-10">
-          <div className="text-center space-y-2">
-            <h2 className="text-2xl sm:text-3xl font-bold text-white">Layanan & Pricelist</h2>
-            <p className="text-xs sm:text-sm text-slate-400">Pilihan perawatan lengkap yang disesuaikan dengan kondisi material sepatu</p>
+      {/* Bab 2: Storytelling Narrative / Mengapa Aiterna */}
+      <section id="story" className="py-20 px-4 bg-stone-900/40 border-y border-stone-800/80">
+        <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+          <div className="space-y-5">
+            <span className="text-xs font-bold tracking-widest text-amber-500 uppercase block">
+              Filosofi Perawatan
+            </span>
+            <h2 className="text-3xl font-bold text-stone-100 leading-tight">
+              Lebih Dari Sekadar Membersihkan, Ini Restorasi Seni Footwear
+            </h2>
+            <p className="text-sm text-stone-400 leading-relaxed font-light">
+              Sepatu buatan tangan, *leather boots*, hingga *limited sneakers* membutuhkan perlakuan khusus. Penggunaan sabun sembarangan bisa merusak struktur serat kain, membuat bahan kulit menjadi pecah, atau memudarkan warna aslinya.
+            </p>
+            <p className="text-sm text-stone-400 leading-relaxed font-light">
+              Di **Aiterna Shoecare**, kami memadukan teknik pembersihan manual tingkat tinggi dengan cairan pembersih khusus ramah lingkungan yang disesuaikan dengan karakteristik bahan sepatu Anda.
+            </p>
+            <div className="pt-2 flex gap-6 text-xs text-stone-300 font-semibold">
+              <div className="flex items-center gap-2">
+                <span className="text-emerald-400 text-base">✓</span> Premium Cleaner
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-emerald-400 text-base">✓</span> Live Status
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-emerald-400 text-base">✓</span> Garansi Cuci
+              </div>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-stone-900 p-5 rounded-2xl border border-stone-800 space-y-3">
+              <div className="text-3xl">🧽</div>
+              <h3 className="text-sm font-bold text-stone-200">Material Specific</h3>
+              <p className="text-xs text-stone-400 font-light">Treatment terpisah untuk Suede, Canvas, Leather, Mesh, & Nubuck.</p>
+            </div>
+            <div className="bg-stone-900 p-5 rounded-2xl border border-stone-800 space-y-3 mt-6">
+              <div className="text-3xl">☀️</div>
+              <h3 className="text-sm font-bold text-stone-200">Anti-Oksidasi</h3>
+              <p className="text-xs text-stone-400 font-light">Mencegah dan memulihkan midsole karet yang menguning.</p>
+            </div>
+            <div className="bg-stone-900 p-5 rounded-2xl border border-stone-800 space-y-3">
+              <div className="text-3xl">📱</div>
+              <h3 className="text-sm font-bold text-stone-200">Nota Digital</h3>
+              <p className="text-xs text-stone-400 font-light">Pantau posisi rak dan status pengerjaan secara real-time via WA.</p>
+            </div>
+            <div className="bg-stone-900 p-5 rounded-2xl border border-stone-800 space-y-3 mt-6">
+              <div className="text-3xl">⭐</div>
+              <h3 className="text-sm font-bold text-stone-200">Aiterna Circle</h3>
+              <p className="text-xs text-stone-400 font-light">Sistem poin otomatis yang memberikan diskon khusus di setiap perawatan.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Bab 3: Process Flow (4 Langkah Penanganan) */}
+      <section id="proses" className="py-20 px-4 max-w-5xl mx-auto space-y-12">
+        <div className="text-center space-y-3">
+          <span className="text-xs font-bold tracking-widest text-amber-500 uppercase block">Alur Pengerjaan</span>
+          <h2 className="text-3xl font-bold text-stone-100">4 Langkah Standardisasi Perawatan</h2>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[
+            { step: '01', title: 'Inspeksi & Diagnosa', desc: 'Pengecekan mendalam noda, kondisi outsole, serta identifikasi bahan sepatu.' },
+            { step: '02', title: 'Deep Treatment', desc: 'Pembersihan mikro menggunakan cairan khusus dan sikat bulu kuda yang aman.' },
+            { step: '03', title: 'Natural Drying', desc: 'Pengeringan suhu ruangan khusus tanpa paparan matahari langsung agar tidak merusak lem.' },
+            { step: '04', title: 'Quality Control', desc: 'Pemberian deodorizer, tagging rak, dan pembaruan nota status siap diambil.' },
+          ].map((item, idx) => (
+            <div key={idx} className="bg-stone-900/60 border border-stone-800/80 p-6 rounded-2xl relative space-y-3 hover:border-amber-500/40 transition">
+              <span className="text-3xl font-black text-amber-500/30 font-mono">{item.step}</span>
+              <h3 className="text-base font-bold text-stone-200">{item.title}</h3>
+              <p className="text-xs text-stone-400 leading-relaxed font-light">{item.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Bab 4: Katalog Layanan & Price List */}
+      <section id="layanan" className="py-20 px-4 bg-stone-900/40 border-y border-stone-800/80">
+        <div className="max-w-5xl mx-auto space-y-12">
+          <div className="text-center space-y-3">
+            <span className="text-xs font-bold tracking-widest text-amber-500 uppercase block">Katalog Layanan</span>
+            <h2 className="text-3xl font-bold text-stone-100">Pilihan Treatment Sesuai Kebutuhan</h2>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {[
               {
                 title: 'Fast Clean',
                 price: 'Rp 35.000',
-                desc: 'Pembersihan bagian luar (upper & midsole). Solusi praktis untuk penggunaan harian.',
+                desc: 'Pembersihan cepat area luar (upper & midsole). Solusi praktis pemakaian harian.',
                 time: '1 Hari',
               },
               {
                 title: 'Deep Clean',
                 price: 'Rp 50.000',
-                desc: 'Pembersihan menyeluruh: upper, insole, midsole, outsole, hingga tali sepatu.',
+                desc: 'Pembersihan menyeluruh seluruh bagian: upper, insole, midsole, outsole, & tali sepatu.',
                 time: '2-3 Hari',
-                badge: 'Favorit',
+                badge: 'Paling Laris',
               },
               {
                 title: 'Unyellowing',
                 price: 'Rp 40.000',
-                desc: 'Menghilangkan efek menguning pada midsole akibat oksidasi karet/BOOST.',
+                desc: 'Treatment pemulihan warna menguning pada midsole akibat oksidasi karet/BOOST.',
                 time: '2-3 Hari',
               },
               {
                 title: 'Repaint & Recolor',
                 price: 'Rp 120.000',
-                desc: 'Restorasi warna yang pudar atau ganti warna baru dengan cat khusus sintetis/leather.',
+                desc: 'Pengecatan ulang warna pudar atau ganti warna baru dengan cat sintetis/leather.',
                 time: '4-7 Hari',
               },
-            ].map((item, idx) => (
-              <div
-                key={idx}
-                className="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between hover:border-emerald-500/50 transition relative group"
-              >
-                {item.badge && (
-                  <span className="absolute -top-3 right-4 bg-emerald-600 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow">
-                    {item.badge}
+            ].map((card, i) => (
+              <div key={i} className="bg-stone-900 border border-stone-800 rounded-2xl p-6 flex flex-col justify-between hover:border-amber-500/50 transition relative group">
+                {card.badge && (
+                  <span className="absolute -top-3 right-4 bg-gradient-to-r from-amber-500 to-amber-600 text-stone-950 text-[10px] font-black px-3 py-1 rounded-full shadow-lg">
+                    {card.badge}
                   </span>
                 )}
                 <div className="space-y-3">
-                  <h3 className="text-lg font-bold text-white group-hover:text-emerald-400 transition">{item.title}</h3>
-                  <div className="text-2xl font-black text-emerald-400">{item.price}</div>
-                  <p className="text-xs text-slate-400 leading-relaxed">{item.desc}</p>
+                  <h3 className="text-lg font-bold text-stone-100 group-hover:text-amber-400 transition">{card.title}</h3>
+                  <div className="text-2xl font-black text-amber-400">{card.price}</div>
+                  <p className="text-xs text-stone-400 leading-relaxed font-light">{card.desc}</p>
                 </div>
-                <div className="pt-4 mt-4 border-t border-slate-800/80 text-[11px] text-slate-500">
-                  <span>⏱️ Estimasi {item.time}</span>
+                <div className="pt-4 mt-4 border-t border-stone-800/80 text-[11px] text-stone-500 font-medium">
+                  ⏱️ Estimasi: {card.time}
                 </div>
               </div>
             ))}
@@ -163,72 +255,64 @@ export default function PublicLandingPage() {
         </div>
       </section>
 
-      {/* Portofolio Showcase */}
-      <section id="portofolio" className="py-16 px-4 max-w-5xl mx-auto space-y-8">
-        <div className="text-center space-y-2">
-          <h2 className="text-2xl sm:text-3xl font-bold text-white">Hasil Pengerjaan</h2>
-          <p className="text-xs sm:text-sm text-slate-400">Bukti penanganan perawatan sepatu pelanggan Aiterna Shoecare</p>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {[
-            { tag: 'Deep Clean', title: 'Sneakers Canvas & Mesh', desc: 'Noda membandel terangkat bersih tanpa merusak serat kain.' },
-            { tag: 'Unyellowing', title: 'Midsole Rubber & Boost', desc: 'Kembali putih bersih bebas warna kuning oksidasi.' },
-            { tag: 'Leather Treatment', title: 'Formal & Casual Leather', desc: 'Pembersihan plus pelembap khusus pencegah pecah-pecah.' },
-          ].map((card, i) => (
-            <div key={i} className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3">
-              <div className="w-full h-32 bg-slate-950 rounded-xl border border-slate-800 flex items-center justify-center text-slate-600 text-xs font-mono">
-                [ Portofolio Photo #{i + 1} ]
-              </div>
-              <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-                {card.tag}
-              </span>
-              <h3 className="text-sm font-bold text-white">{card.title}</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">{card.desc}</p>
-            </div>
-          ))}
+      {/* Bab 5: Membership Teaser */}
+      <section className="py-16 px-4 max-w-4xl mx-auto text-center space-y-6">
+        <div className="bg-gradient-to-br from-amber-500/10 via-stone-900 to-emerald-500/10 border border-amber-500/30 p-8 sm:p-12 rounded-3xl space-y-4">
+          <span className="text-xs font-bold text-amber-400 uppercase tracking-widest block">Aiterna Rewards Circle</span>
+          <h2 className="text-2xl sm:text-4xl font-black text-stone-100">Kumpulkan Poin di Setiap Cuci Sepatu</h2>
+          <p className="text-xs sm:text-sm text-stone-400 max-w-lg mx-auto font-light leading-relaxed">
+            Dapatkan bonus 10 poin pendaftaran pertama! Tukarkan poin perawatanmu dengan diskon spesial hingga gratis Fast Clean.
+          </p>
+          <div className="pt-2">
+            <Link
+              href="/member"
+              className="inline-block bg-amber-500 hover:bg-amber-400 text-stone-950 text-xs sm:text-sm font-black px-6 py-3.5 rounded-xl transition shadow-lg shadow-amber-500/10"
+            >
+              DAFTAR / CEK POIN MEMBER →
+            </Link>
+          </div>
         </div>
       </section>
 
-      {/* Form Konsultasi WhatsApp */}
-      <section id="konsultasi" className="py-16 px-4 bg-slate-900/30 border-t border-slate-800/80">
-        <div className="max-w-xl mx-auto bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl">
+      {/* Bab 6: Form Konsultasi & Booking WA */}
+      <section id="konsultasi" className="py-20 px-4 bg-stone-900/40 border-t border-stone-800/80">
+        <div className="max-w-xl mx-auto bg-stone-900 border border-stone-800 rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl">
           <div className="text-center space-y-2">
-            <h2 className="text-xl sm:text-2xl font-bold text-white">Konsultasi / Booking Layanan</h2>
-            <p className="text-xs text-slate-400">Isi form di bawah ini untuk terhubung langsung dengan tim kami di WhatsApp</p>
+            <h2 className="text-2xl font-bold text-stone-100">Konsultasi / Booking Treatment</h2>
+            <p className="text-xs text-stone-400 font-light">Tanyakan kondisi sepatu atau buat janji penyerahan ke workshop</p>
           </div>
 
           <form onSubmit={handleConsultSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold uppercase text-slate-400 mb-1">Nama</label>
+              <label className="block text-xs font-semibold uppercase text-stone-400 mb-1">Nama Pemilik</label>
               <input
                 type="text"
                 placeholder="Contoh: Bowo"
                 required
                 value={nama}
                 onChange={(e) => setNama(e.target.value)}
-                className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                className="w-full p-3 bg-stone-950 border border-stone-800 rounded-xl text-xs sm:text-sm text-stone-100 placeholder-stone-600 focus:outline-none focus:border-amber-500"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold uppercase text-slate-400 mb-1">Merek & Seri Sepatu</label>
+              <label className="block text-xs font-semibold uppercase text-stone-400 mb-1">Merek & Seri Sepatu</label>
               <input
                 type="text"
-                placeholder="Contoh: Adidas Samba / Nike Air Force 1"
+                placeholder="Contoh: Adidas Samba / Nike Air Jordan"
                 required
                 value={sepatu}
                 onChange={(e) => setSepatu(e.target.value)}
-                className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                className="w-full p-3 bg-stone-950 border border-stone-800 rounded-xl text-xs sm:text-sm text-stone-100 placeholder-stone-600 focus:outline-none focus:border-amber-500"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold uppercase text-slate-400 mb-1">Pilihan Treatment</label>
+              <label className="block text-xs font-semibold uppercase text-stone-400 mb-1">Pilihan Treatment</label>
               <select
                 value={layanan}
                 onChange={(e) => setLayanan(e.target.value)}
-                className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs sm:text-sm text-white focus:outline-none focus:border-emerald-500"
+                className="w-full p-3 bg-stone-950 border border-stone-800 rounded-xl text-xs sm:text-sm text-stone-100 focus:outline-none focus:border-amber-500"
               >
                 <option value="Fast Clean">Fast Clean (Rp 35.000)</option>
                 <option value="Deep Clean">Deep Clean (Rp 50.000)</option>
@@ -238,51 +322,51 @@ export default function PublicLandingPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold uppercase text-slate-400 mb-1">Catatan Tambahan (Opsional)</label>
+              <label className="block text-xs font-semibold uppercase text-stone-400 mb-1">Catatan Kondisi (Opsional)</label>
               <input
                 type="text"
-                placeholder="Misal: Ada noda oli di bagian sol samping"
+                placeholder="Misal: Sol samping menguning / ada noda lumpur"
                 value={catatan}
                 onChange={(e) => setCatatan(e.target.value)}
-                className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                className="w-full p-3 bg-stone-950 border border-stone-800 rounded-xl text-xs sm:text-sm text-stone-100 placeholder-stone-600 focus:outline-none focus:border-amber-500"
               />
             </div>
 
             <button
               type="submit"
-              className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold py-3.5 rounded-xl transition active:scale-95 shadow-lg shadow-emerald-600/20 text-xs sm:text-sm"
+              className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-stone-950 font-black py-3.5 rounded-xl transition active:scale-95 shadow-lg shadow-amber-500/10 text-xs sm:text-sm"
             >
-              KIRIM PESAN VIA WHATSAPP
+              KIRIM PESAN KONSULTASI VIA WA
             </button>
           </form>
         </div>
       </section>
 
       {/* Footer Murni Publik */}
-      <footer id="lokasi" className="bg-slate-900 border-t border-slate-800 py-12 px-4">
-        <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 text-xs text-slate-400">
+      <footer className="bg-stone-950 border-t border-stone-800/80 py-12 px-4">
+        <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 text-xs text-stone-400">
           <div className="space-y-3">
-            <span className="text-base font-black tracking-wider text-white">AITERNA SHOECARE</span>
-            <p className="leading-relaxed">
-              Layanan perawatan dan pencucian sepatu terpercaya dengan penanganan khusus serta transparansi pengerjaan.
+            <span className="text-base font-black tracking-widest text-stone-100">AITERNA SHOECARE</span>
+            <p className="leading-relaxed font-light">
+              Atelier perawatan dan restorasi sepatu profesional dengan sistem transparansi pengerjaan real-time.
             </p>
           </div>
 
           <div className="space-y-2">
-            <h4 className="text-sm font-bold text-white mb-2">Jam Operasional</h4>
+            <h4 className="text-sm font-bold text-stone-200 mb-2">Jam Operasional Workshop</h4>
             <p>Senin – Sabtu: 09:00 – 20:00 WIB</p>
             <p>Minggu: 10:00 – 17:00 WIB</p>
           </div>
 
           <div className="space-y-2">
-            <h4 className="text-sm font-bold text-white mb-2">Lokasi Workshop</h4>
+            <h4 className="text-sm font-bold text-stone-200 mb-2">Workshop & Kontak</h4>
             <p>📍 Jakarta East, Indonesia</p>
             <p>WhatsApp: +62 812-3456-7890</p>
           </div>
         </div>
 
-        <div className="max-w-5xl mx-auto pt-8 mt-8 border-t border-slate-800/80 text-center text-[11px] text-slate-500">
-          <p>© {new Date().getFullYear()} Aiterna Shoecare. All rights reserved.</p>
+        <div className="max-w-5xl mx-auto pt-8 mt-8 border-t border-stone-900 text-center text-[11px] text-stone-600">
+          <p>© {new Date().getFullYear()} Aiterna Shoecare Atelier. All rights reserved.</p>
         </div>
       </footer>
     </div>
