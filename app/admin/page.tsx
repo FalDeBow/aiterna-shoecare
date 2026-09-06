@@ -1,290 +1,79 @@
 'use client';
 
 import React, { useState } from 'react';
-import Link from 'next/link';
-import { supabase } from '@/lib/supabase';
+import { STAFF_LIST } from '@/lib/auth-config';
 
-export default function AdminPOS() {
-  const [nama, setNama] = useState('');
-  const [noWa, setNoWa] = useState('');
-  const [merek, setMerek] = useState('');
-  const [tag, setTag] = useState('Tag #01');
-  const [layanan, setLayanan] = useState('Deep Clean');
-  const [harga, setHarga] = useState(50000);
-  const [statusBayar, setStatusBayar] = useState('PAID');
-  const [catatan, setCatatan] = useState('');
-  const [loading, setLoading] = useState(false);
+export default function MultiUserLoginPage() {
+  const [pin, setPin] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setErrorMsg('');
 
-    try {
-      // 1. Cek Pelanggan
-      const { data: existingCust } = await supabase
-        .from('customers')
-        .select('id')
-        .eq('no_wa', noWa)
-        .maybeSingle();
+    // Cari staf berdasarkan PIN
+    const foundStaff = STAFF_LIST.find((s) => s.pin === pin);
 
-      let customerId = existingCust?.id;
+    if (foundStaff) {
+      // Set Cookie Akses selama 1 Hari
+      document.cookie = 'aiterna_admin_token=authenticated; path=/; max-age=86400';
+      document.cookie = `aiterna_staff_role=${foundStaff.role}; path=/; max-age=86400`;
+      document.cookie = `aiterna_staff_name=${encodeURIComponent(foundStaff.nama)}; path=/; max-age=86400`;
 
-      if (!customerId) {
-        const { data: newCust, error: createCustErr } = await supabase
-          .from('customers')
-          .insert([{ nama, no_wa: noWa }])
-          .select('id')
-          .single();
-
-        if (createCustErr || !newCust) {
-          throw new Error(createCustErr?.message || 'Gagal membuat pelanggan');
-        }
-        customerId = newCust.id;
+      // Gunakan window.location.href agar cookie langsung terbaca sempurna oleh Middleware
+      if (foundStaff.role === 'OPS') {
+        window.location.href = '/admin/orders';
+      } else {
+        window.location.href = '/admin';
       }
-
-      // 2. Buat No. Nota Otomatis
-      const dateStr = new Date().toISOString().slice(2, 10).replace(/-/g, '');
-      const randomNum = Math.floor(100 + Math.random() * 900);
-      const noNota = `AIT-${dateStr}-${randomNum}`;
-
-      // 3. Simpan Pesanan (Orders)
-      const { data: order, error: orderErr } = await supabase
-        .from('orders')
-        .insert([
-          {
-            no_nota: noNota,
-            customer_id: customerId,
-            tag_number: tag,
-            total_biaya: harga,
-            status: 'DITERIMA',
-            status_bayar: statusBayar,
-          },
-        ])
-        .select('id')
-        .single();
-
-      if (orderErr || !order) {
-        throw new Error(orderErr?.message || 'Gagal menyimpan pesanan');
-      }
-
-      // 4. Simpan Detail Sepatu
-      const { error: itemErr } = await supabase.from('shoe_items').insert([
-        {
-          order_id: order.id,
-          merek_warna: merek,
-          layanan: layanan,
-          catatan: catatan,
-        },
-      ]);
-
-      if (itemErr) throw itemErr;
-
-      // 5. Format Draf Pesan WA
-      const statusBayarLabel =
-        statusBayar === 'PAID' ? 'LUNAS' : statusBayar === 'DP' ? 'DP (UANG MUKA)' : 'BELUM LUNAS';
-
-      const pesan =
-        `Halo Kak ${nama}! Terima kasih telah merawat sepatu di *Aiterna Shoecare*.\n\n` +
-        `📋 *NOTA TRANSAKSI*\n` +
-        `• No. Nota: *${noNota}*\n` +
-        `• Tag Rak: *${tag}*\n` +
-        `• Sepatu: *${merek}*\n` +
-        `• Layanan: *${layanan}*\n` +
-        `• Total Biaya: Rp ${harga.toLocaleString('id-ID')}\n` +
-        `• Status Bayar: *${statusBayarLabel}*\n` +
-        (catatan ? `• Catatan: _${catatan}_\n\n` : `\n`) +
-        `Pantau status pengerjaan sepatumu secara langsung di sini:\n` +
-        `https://aiterna.vercel.app/track/${noNota}`;
-
-      const waUrl = `https://wa.me/${noWa.replace(/^0/, '62')}?text=${encodeURIComponent(pesan)}`;
-      window.open(waUrl, '_blank');
-
-      alert(`Transaksi ${noNota} Berhasil Disimpan!`);
-
-      // Reset Form
-      setNama('');
-      setNoWa('');
-      setMerek('');
-      setCatatan('');
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Terjadi kesalahan';
-      alert('Gagal: ' + msg);
-    } finally {
-      setLoading(false);
+    } else {
+      setErrorMsg('PIN Staf Tidak Dikenali!');
+      setPin('');
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-4 font-sans">
-      <div className="max-w-md mx-auto bg-slate-900 rounded-2xl shadow-2xl overflow-hidden border border-slate-800">
-        
-        {/* Navigation Bar Header */}
-        <div className="bg-slate-950 p-2 flex border-b border-slate-800 text-xs font-bold gap-1">
-          <Link
-            href="/admin"
-            className="flex-1 py-2.5 text-center bg-emerald-600 text-white rounded-xl shadow transition"
-          >
-            + Kasir
-          </Link>
-          <Link
-            href="/admin/orders"
-            className="flex-1 py-2.5 text-center text-slate-400 hover:text-white transition"
-          >
-            Daftar Pesanan
-          </Link>
-          <Link
-            href="/admin/reports"
-            className="flex-1 py-2.5 text-center text-slate-400 hover:text-white transition"
-          >
-            Laporan Omzet
-          </Link>
+    <div className="min-h-screen bg-zinc-950 text-white flex items-center justify-center p-4 font-sans">
+      <div className="w-full max-w-sm bg-zinc-900 border border-zinc-800 p-6 rounded-3xl shadow-2xl space-y-6 text-center">
+        <div>
+          <div className="w-12 h-12 bg-yellow-400 rounded-full mx-auto flex items-center justify-center text-zinc-950 font-black text-xl mb-3 shadow-lg shadow-yellow-400/20">
+            A
+          </div>
+          <h1 className="text-xl font-black text-white tracking-wider">PORTAL STAF AITERNA</h1>
+          <p className="text-xs text-zinc-400 mt-1">Masukkan PIN Akses Pengguna Anda</p>
         </div>
 
-        {/* Branding Header */}
-        <div className="p-4 text-center border-b border-slate-800/60 bg-gradient-to-b from-slate-900 to-slate-950">
-          <h1 className="text-xl font-black tracking-wider text-white">AITERNA POS</h1>
-          <p className="text-xs text-slate-400">Input Transaksi & Nota Digital</p>
-        </div>
+        <form onSubmit={handleLogin} className="space-y-4">
+          <input
+            type="password"
+            maxLength={6}
+            value={pin}
+            onChange={(e) => setPin(e.target.value)}
+            placeholder="••••"
+            className="w-full bg-zinc-950 border border-zinc-800 text-center text-3xl font-black p-3.5 rounded-2xl tracking-widest text-yellow-400 focus:outline-none focus:border-yellow-400"
+            autoFocus
+          />
 
-        <form onSubmit={handleSubmit} className="p-5 space-y-4">
-          <div>
-            <label className="block text-xs font-semibold uppercase text-slate-400 mb-1">
-              Nama Pelanggan
-            </label>
-            <input
-              type="text"
-              placeholder="Contoh: Budi Santoso"
-              required
-              value={nama}
-              onChange={(e) => setNama(e.target.value)}
-              className="w-full p-3 bg-slate-800/80 border border-slate-700/80 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold uppercase text-slate-400 mb-1">
-              No. WhatsApp
-            </label>
-            <input
-              type="number"
-              placeholder="081234567890"
-              required
-              value={noWa}
-              onChange={(e) => setNoWa(e.target.value)}
-              className="w-full p-3 bg-slate-800/80 border border-slate-700/80 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold uppercase text-slate-400 mb-1">
-              Merek & Warna Sepatu
-            </label>
-            <input
-              type="text"
-              placeholder="Nike Air Jordan - Putih"
-              required
-              value={merek}
-              onChange={(e) => setMerek(e.target.value)}
-              className="w-full p-3 bg-slate-800/80 border border-slate-700/80 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-semibold uppercase text-slate-400 mb-1">
-                Tag Rak
-              </label>
-              <select
-                value={tag}
-                onChange={(e) => setTag(e.target.value)}
-                className="w-full p-3 bg-slate-800/80 border border-slate-700/80 rounded-xl text-white focus:outline-none focus:border-emerald-500"
-              >
-                <option>Tag #01</option>
-                <option>Tag #02</option>
-                <option>Tag #03</option>
-                <option>Tag #04</option>
-                <option>Tag #05</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold uppercase text-slate-400 mb-1">
-                Layanan
-              </label>
-              <select
-                value={layanan}
-                onChange={(e) => {
-                  setLayanan(e.target.value);
-                  if (e.target.value === 'Fast Clean') setHarga(35000);
-                  if (e.target.value === 'Deep Clean') setHarga(50000);
-                  if (e.target.value === 'Unyellowing') setHarga(40000);
-                  if (e.target.value === 'Repaint') setHarga(120000);
-                }}
-                className="w-full p-3 bg-slate-800/80 border border-slate-700/80 rounded-xl text-white focus:outline-none focus:border-emerald-500"
-              >
-                <option value="Fast Clean">Fast Clean (35rb)</option>
-                <option value="Deep Clean">Deep Clean (50rb)</option>
-                <option value="Unyellowing">Unyellowing (40rb)</option>
-                <option value="Repaint">Repaint (120rb)</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Status Bayar Selector */}
-          <div>
-            <label className="block text-xs font-semibold uppercase text-slate-400 mb-1">
-              Status Pembayaran
-            </label>
-            <div className="grid grid-cols-3 gap-2">
-              {[
-                { id: 'PAID', label: 'LUNAS' },
-                { id: 'DP', label: 'DP' },
-                { id: 'UNPAID', label: 'BELUM BAYAR' },
-              ].map((item) => (
-                <button
-                  type="button"
-                  key={item.id}
-                  onClick={() => setStatusBayar(item.id)}
-                  className={`py-2 px-3 text-xs font-bold rounded-xl border transition ${
-                    statusBayar === item.id
-                      ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400'
-                      : 'bg-slate-800/50 border-slate-700/60 text-slate-400 hover:text-white'
-                  }`}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold uppercase text-slate-400 mb-1">
-              Catatan Kondisi (Opsional)
-            </label>
-            <input
-              type="text"
-              placeholder="Misal: Outsole menguning, ada noda oli"
-              value={catatan}
-              onChange={(e) => setCatatan(e.target.value)}
-              className="w-full p-3 bg-slate-800/80 border border-slate-700/80 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 text-sm"
-            />
-          </div>
-
-          <div className="pt-3 border-t border-slate-800 flex justify-between items-center">
-            <span className="text-sm font-medium text-slate-400">Total Biaya:</span>
-            <span className="text-2xl font-black text-emerald-400">
-              Rp {harga.toLocaleString('id-ID')}
-            </span>
-          </div>
+          {errorMsg && (
+            <p className="text-xs text-rose-500 font-bold bg-rose-500/10 p-2.5 rounded-xl border border-rose-500/20">
+              {errorMsg}
+            </p>
+          )}
 
           <button
             type="submit"
-            disabled={loading}
-            className="w-full bg-emerald-600 hover:bg-emerald-500 text-white p-4 rounded-xl font-extrabold tracking-wide transition active:scale-95 disabled:bg-slate-700"
+            className="w-full bg-yellow-400 hover:bg-yellow-300 text-zinc-950 font-black py-3.5 rounded-2xl transition active:scale-95 uppercase tracking-wide text-xs"
           >
-            {loading ? 'MENYIMPAN...' : 'SIMPAN & KIRIM NOTA WA'}
+            MASUK PORTAL
           </button>
         </form>
+
+        <div className="pt-2 border-t border-zinc-800 text-[10px] text-zinc-500 text-left space-y-1">
+          <p className="font-bold text-zinc-400">Testing PIN Default:</p>
+          <p>• Owner: <code className="text-yellow-400">9999</code> (Akses Penuh)</p>
+          <p>• Kasir: <code className="text-yellow-400">1111</code> (Input POS & Orders)</p>
+          <p>• Tim Ops: <code className="text-yellow-400">2222</code> (Hanya Orders/Rak)</p>
+        </div>
       </div>
     </div>
   );
