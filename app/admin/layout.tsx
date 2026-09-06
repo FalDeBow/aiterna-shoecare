@@ -2,20 +2,18 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useRouter, usePathname } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 
 export default function StaffAdminLayout({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
   const pathname = usePathname();
 
   const [staffName, setStaffName] = useState('Staf');
   const [staffRole, setStaffRole] = useState('KASIR');
 
   useEffect(() => {
-    // Ambil data staf dari Cookie
     const cookies = document.cookie.split('; ').reduce((acc: any, current) => {
       const [key, value] = current.split('=');
-      acc[key] = value;
+      if (key && value) acc[key] = value;
       return acc;
     }, {});
 
@@ -27,16 +25,18 @@ export default function StaffAdminLayout({ children }: { children: React.ReactNo
     }
   }, []);
 
-  const handleLogout = () => {
-    document.cookie = 'aiterna_admin_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;';
-    document.cookie = 'aiterna_staff_role=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;';
-    document.cookie = 'aiterna_staff_name=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;';
-    router.push('/admin/login');
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch (e) {
+      console.error(e);
+    } finally {
+      window.location.href = '/admin/login';
+    }
   };
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 font-sans">
-      {/* Top Navigation Bar Staf */}
       <header className="bg-zinc-900 border-b border-zinc-800 px-4 py-2.5 flex flex-wrap justify-between items-center text-xs gap-2">
         <div className="flex items-center gap-3">
           <span className="w-2.5 h-2.5 rounded-full bg-yellow-400 animate-pulse"></span>
@@ -46,7 +46,6 @@ export default function StaffAdminLayout({ children }: { children: React.ReactNo
           </div>
         </div>
 
-        {/* Dynamic Nav Links Berdasarkan Role */}
         <nav className="flex items-center gap-2">
           {staffRole !== 'OPS' && (
             <Link
