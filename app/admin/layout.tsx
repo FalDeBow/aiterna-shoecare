@@ -1,37 +1,94 @@
 'use client';
 
-import React from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { useRouter, usePathname } from 'next/navigation';
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default function StaffAdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const pathname = usePathname();
+
+  const [staffName, setStaffName] = useState('Staf');
+  const [staffRole, setStaffRole] = useState('KASIR');
+
+  useEffect(() => {
+    // Ambil data staf dari Cookie
+    const cookies = document.cookie.split('; ').reduce((acc: any, current) => {
+      const [key, value] = current.split('=');
+      acc[key] = value;
+      return acc;
+    }, {});
+
+    if (cookies.aiterna_staff_name) {
+      setStaffName(decodeURIComponent(cookies.aiterna_staff_name));
+    }
+    if (cookies.aiterna_staff_role) {
+      setStaffRole(cookies.aiterna_staff_role);
+    }
+  }, []);
 
   const handleLogout = () => {
-    // Hapus cookie dan session otentikasi admin
     document.cookie = 'aiterna_admin_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;';
-    sessionStorage.removeItem('aiterna_admin_auth');
-    
-    // Kembalikan ke halaman utama publik
-    router.push('/');
-    router.refresh();
+    document.cookie = 'aiterna_staff_role=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;';
+    document.cookie = 'aiterna_staff_name=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;';
+    router.push('/admin/login');
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans">
-      {/* Header Top Bar Khusus Admin Internal */}
-      <div className="bg-slate-900 border-b border-slate-800 px-4 py-2.5 flex justify-between items-center text-xs">
-        <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span className="font-bold text-white tracking-wider">AITERNA POS INTERNAL</span>
+    <div className="min-h-screen bg-zinc-950 text-zinc-100 font-sans">
+      {/* Top Navigation Bar Staf */}
+      <header className="bg-zinc-900 border-b border-zinc-800 px-4 py-2.5 flex flex-wrap justify-between items-center text-xs gap-2">
+        <div className="flex items-center gap-3">
+          <span className="w-2.5 h-2.5 rounded-full bg-yellow-400 animate-pulse"></span>
+          <div>
+            <span className="font-black text-white block leading-tight">{staffName}</span>
+            <span className="text-[10px] text-yellow-400 font-bold tracking-wider">ROLE: {staffRole}</span>
+          </div>
         </div>
-        <button
-          onClick={handleLogout}
-          className="bg-slate-800 hover:bg-rose-600/80 text-slate-300 hover:text-white px-3 py-1.5 rounded-lg font-semibold transition text-[11px]"
-        >
-          🚪 Keluar Sesi Kasir
-        </button>
-      </div>
-      {children}
+
+        {/* Dynamic Nav Links Berdasarkan Role */}
+        <nav className="flex items-center gap-2">
+          {staffRole !== 'OPS' && (
+            <Link
+              href="/admin"
+              className={`px-3 py-1.5 rounded-xl font-bold transition ${
+                pathname === '/admin' ? 'bg-yellow-400 text-zinc-950' : 'text-zinc-400 hover:text-white'
+              }`}
+            >
+              + Kasir
+            </Link>
+          )}
+
+          <Link
+            href="/admin/orders"
+            className={`px-3 py-1.5 rounded-xl font-bold transition ${
+              pathname === '/admin/orders' ? 'bg-yellow-400 text-zinc-950' : 'text-zinc-400 hover:text-white'
+            }`}
+          >
+            Daftar Rak Pesanan
+          </Link>
+
+          {staffRole === 'OWNER' && (
+            <Link
+              href="/admin/reports"
+              className={`px-3 py-1.5 rounded-xl font-bold transition ${
+                pathname === '/admin/reports' ? 'bg-yellow-400 text-zinc-950' : 'text-zinc-400 hover:text-white'
+              }`}
+            >
+              Laporan Omzet
+            </Link>
+          )}
+
+          <button
+            onClick={handleLogout}
+            className="bg-zinc-800 hover:bg-rose-600/80 text-zinc-300 hover:text-white px-3 py-1.5 rounded-xl font-bold transition text-[11px] ml-2"
+          >
+            🚪 Keluar
+          </button>
+        </nav>
+      </header>
+
+      <main>{children}</main>
     </div>
   );
 }
