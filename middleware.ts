@@ -3,7 +3,10 @@ import type { NextRequest } from 'next/server';
 import { ROLE_PERMISSIONS, StaffRole } from '@/lib/auth-config';
 
 export default function middleware(request: NextRequest) {
-  const path = request.nextUrl.pathname;
+  let path = request.nextUrl.pathname;
+  if (path.endsWith('/') && path.length > 1) {
+    path = path.slice(0, -1);
+  }
 
   if (path.startsWith('/admin')) {
     const token = request.cookies.get('aiterna_admin_token')?.value;
