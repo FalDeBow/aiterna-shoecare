@@ -6,28 +6,28 @@ export default function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
 
   if (path.startsWith('/admin')) {
-    const tokenCookie = request.cookies.get('aiterna_admin_token');
-    const roleCookie = request.cookies.get('aiterna_staff_role')?.value as StaffRole;
+    const token = request.cookies.get('aiterna_admin_token')?.value;
+    const role = request.cookies.get('aiterna_staff_role')?.value as StaffRole;
 
-    const isLoggedIn = tokenCookie?.value === 'authenticated' && !!roleCookie;
+    const isLoggedIn = token === 'authenticated' && !!role;
 
-    // Jika mengakses halaman login tetapi SUDAH LOGIN -> Lempar masuk ke dashboard
+    // Jika user mengakses halaman /admin/login tapi SUDAH LOGIN
     if (path === '/admin/login') {
       if (isLoggedIn) {
-        const defaultPath = roleCookie === 'OPS' ? '/admin/orders' : '/admin';
-        return NextResponse.redirect(new URL(defaultPath, request.url));
+        const target = role === 'OPS' ? '/admin/orders' : '/admin';
+        return NextResponse.redirect(new URL(target, request.url));
       }
       return NextResponse.next();
     }
 
-    // Jika BELUM LOGIN -> Lempar ke halaman login
+    // Jika BELUM LOGIN dan mencoba masuk rute /admin
     if (!isLoggedIn) {
       return NextResponse.redirect(new URL('/admin/login', request.url));
     }
 
-    // Cek Hak Akses Role
-    const allowedRoutes = ROLE_PERMISSIONS[roleCookie] || [];
-    const isAllowed = allowedRoutes.some((route) => path === route || path.startsWith(`${route}/`));
+    // Cek Hak Akses per Role
+    const allowed = ROLE_PERMISSIONS[role] || [];
+    const isAllowed = allowed.some((r) => path === r || path.startsWith(`${r}/`));
 
     if (!isAllowed) {
       return NextResponse.redirect(new URL('/admin/orders', request.url));
