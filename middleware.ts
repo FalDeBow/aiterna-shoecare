@@ -1,22 +1,31 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { ROLE_PERMISSIONS, StaffRole } from './lib/auth-config';
 
 export default function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
 
-  // Cek apakah user sedang mencoba mengakses rute internal /admin
   if (path.startsWith('/admin')) {
-    // Pengecualian: izinkan akses ke halaman login admin
+    // Pengecualian rute login
     if (path === '/admin/login') {
       return NextResponse.next();
     }
 
-    // Cek cookie otentikasi admin
-    const authCookie = request.cookies.get('aiterna_admin_token');
+    const tokenCookie = request.cookies.get('aiterna_admin_token');
+    const roleCookie = request.cookies.get('aiterna_staff_role')?.value as StaffRole;
 
-    // Jika cookie tidak ada / tidak valid, lempar balik ke Landing Page Utama
-    if (!authCookie || authCookie.value !== 'authenticated') {
-      return NextResponse.redirect(new URL('/', request.url));
+    // 1. Cek Apakah Sudah Login
+    if (!tokenCookie || tokenCookie.value !== 'authenticated' || !roleCookie) {
+      return NextResponse.redirect(new URL('/admin/login', request.url));
+    }
+
+    // 2. Cek Hak Akses Role
+    const allowedRoutes = ROLE_PERMISSIONS[roleCookie] || [];
+    const isAllowed = allowedRoutes.some((route) => path === route || path.startsWith(`${route}/`));
+
+    if (!isAllowed) {
+      // Jika Tim Ops / Kasir mencoba buka laporan omzet, lempar ke daftar pesanan
+      return NextResponse.redirect(new URL('/admin/orders', request.url));
     }
   }
 
