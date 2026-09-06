@@ -1,228 +1,145 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { supabase } from '@/lib/supabase';
+import React, { useState } from 'react';
 
-export default function OrderListPage() {
-  const [orders, setOrders] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
+interface OrderItem {
+  id: string;
+  nota: string;
+  customer: string;
+  wa: string;
+  sepatu: string;
+  treatment: string;
+  status: 'DITERIMA' | 'PROSES_CUCI' | 'PENGERINGAN' | 'SIAP_DIAMBIL' | 'SELESAI';
+  pembayaran: 'LUNAS' | 'DP' | 'BELUM_BAYAR';
+  tgl: string;
+}
 
-  const fetchOrders = async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from('orders')
-      .select('*, customers(nama, no_wa), shoe_items(merek_warna, layanan, catatan)')
-      .order('created_at', { ascending: false });
+export default function RakPesananPage() {
+  const [orders, setOrders] = useState<OrderItem[]>([
+    {
+      id: '1',
+      nota: 'AIT-260906-881',
+      customer: 'Mas Bowo',
+      wa: '081234567890',
+      sepatu: 'Adidas Samba Black (42)',
+      treatment: 'Deep Clean',
+      status: 'PROSES_CUCI',
+      pembayaran: 'LUNAS',
+      tgl: '2026-09-06',
+    },
+    {
+      id: '2',
+      nota: 'AIT-260906-412',
+      customer: 'Dr. Ginby',
+      wa: '081987654321',
+      sepatu: 'Nike Air Jordan Suede',
+      treatment: 'Repaint & Repair',
+      status: 'PENGERINGAN',
+      pembayaran: 'DP',
+      tgl: '2026-09-05',
+    },
+    {
+      id: '3',
+      nota: 'AIT-260906-105',
+      customer: 'Mbok Memes',
+      wa: '081311223344',
+      sepatu: 'Vans Old Skool White',
+      treatment: 'Unyellowing',
+      status: 'SIAP_DIAMBIL',
+      pembayaran: 'LUNAS',
+      tgl: '2026-09-04',
+    },
+  ]);
 
-    if (!error && data) {
-      setOrders(data);
-    }
-    setLoading(false);
+  const [filterStatus, setFilterStatus] = useState<string>('ALL');
+
+  const updateStatus = (id: string, newStatus: OrderItem['status']) => {
+    setOrders((prev) =>
+      prev.map((o) => (o.id === id ? { ...o, status: newStatus } : o))
+    );
   };
 
-  useEffect(() => {
-    fetchOrders();
-  }, []);
-
-  const handleUpdateStatus = async (orderId: string, newStatus: string) => {
-    const { error } = await supabase.from('orders').update({ status: newStatus }).eq('id', orderId);
-    if (!error) fetchOrders();
-  };
-
-  const handleUpdateBayar = async (orderId: string, newStatusBayar: string) => {
-    const { error } = await supabase.from('orders').update({ status_bayar: newStatusBayar }).eq('id', orderId);
-    if (!error) fetchOrders();
-  };
-
-  const handleResendWA = (order: any) => {
-    const custNama = order.customers?.nama || 'Pelanggan';
-    const custWa = order.customers?.no_wa || '';
-    const shoe = order.shoe_items?.[0];
-
-    const pesan =
-      `Halo Kak ${custNama}! Berikut update pesanan perawatan sepatu kamu di *Aiterna Shoecare*:\n\n` +
-      `• No. Nota: *${order.no_nota}*\n` +
-      `• Tag Rak: *${order.tag_number}*\n` +
-      `• Sepatu: *${shoe?.merek_warna || '-'}*\n` +
-      `• Status Pengerjaan: *${order.status}*\n` +
-      `• Status Bayar: *${order.status_bayar}*\n\n` +
-      `Pantau progres secara live di sini:\n` +
-      `https://aiterna.vercel.app/track/${order.no_nota}`;
-
-    const waUrl = `https://wa.me/${custWa.replace(/^0/, '62')}?text=${encodeURIComponent(pesan)}`;
-    window.open(waUrl, '_blank');
-  };
-
-  // Filter Data Berdasarkan Pencarian
-  const filteredOrders = orders.filter((o) => {
-    const term = search.toLowerCase();
-    const nama = o.customers?.nama?.toLowerCase() || '';
-    const nota = o.no_nota?.toLowerCase() || '';
-    const tag = o.tag_number?.toLowerCase() || '';
-    return nama.includes(term) || nota.includes(term) || tag.includes(term);
-  });
+  const filteredOrders = orders.filter((o) =>
+    filterStatus === 'ALL' ? true : o.status === filterStatus
+  );
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-4 md:p-6 font-sans">
-      <div className="max-w-4xl mx-auto space-y-5">
+    <div className="p-4 sm:p-8 max-w-6xl mx-auto space-y-6">
+      {/* Header Banner */}
+      <div className="flex flex-wrap justify-between items-center gap-4 bg-zinc-900 border border-zinc-800 p-6 rounded-3xl shadow-xl">
+        <div>
+          <span className="text-xs font-bold text-yellow-400 uppercase tracking-widest block">Operational Dashboard</span>
+          <h1 className="text-2xl font-black text-white">DAFTAR RAK WORKSHOP</h1>
+        </div>
         
-        {/* Navigation Bar Top */}
-        <div className="bg-slate-900 p-2 flex rounded-2xl border border-slate-800 text-xs font-bold gap-1">
-          <Link
-            href="/admin"
-            className="flex-1 py-2.5 text-center text-slate-400 hover:text-white transition"
-          >
-            + Kasir
-          </Link>
-          <Link
-            href="/admin/orders"
-            className="flex-1 py-2.5 text-center bg-emerald-600 text-white rounded-xl shadow transition"
-          >
-            Daftar Pesanan ({orders.length})
-          </Link>
-          <Link
-            href="/admin/reports"
-            className="flex-1 py-2.5 text-center text-slate-400 hover:text-white transition"
-          >
-            Laporan Omzet
-          </Link>
+        {/* Filter Status Quick Tab */}
+        <div className="flex gap-2 overflow-x-auto pb-1 max-w-full">
+          {['ALL', 'DITERIMA', 'PROSES_CUCI', 'PENGERINGAN', 'SIAP_DIAMBIL'].map((st) => (
+            <button
+              key={st}
+              onClick={() => setFilterStatus(st)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition whitespace-nowrap ${
+                filterStatus === st
+                  ? 'bg-yellow-400 text-zinc-950 shadow-md'
+                  : 'bg-zinc-950 text-zinc-400 border border-zinc-800 hover:text-white'
+              }`}
+            >
+              {st === 'ALL' ? 'Semua Rak' : st.replace('_', ' ')}
+            </button>
+          ))}
         </div>
+      </div>
 
-        {/* Input Search Bar */}
-        <div className="bg-slate-900 p-4 rounded-2xl border border-slate-800 flex gap-3">
-          <input
-            type="text"
-            placeholder="Cari Nama Pelanggan, No. Nota, atau Tag Rak..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
-          />
-        </div>
-
-        {/* List Cards */}
-        {loading ? (
-          <p className="text-center py-10 text-slate-500 animate-pulse text-sm">
-            Memuat data transaksi...
-          </p>
-        ) : filteredOrders.length === 0 ? (
-          <div className="text-center py-12 bg-slate-900 rounded-2xl border border-slate-800">
-            <p className="text-slate-400 text-sm">Pesanan tidak ditemukan.</p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {filteredOrders.map((item) => {
-              const shoe = item.shoe_items?.[0];
-              return (
-                <div
-                  key={item.id}
-                  className="bg-slate-900 p-5 rounded-2xl border border-slate-800 space-y-4 hover:border-slate-700 transition"
+      {/* Grid Rak Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        {filteredOrders.map((item) => (
+          <div
+            key={item.id}
+            className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 space-y-4 shadow-xl flex flex-col justify-between hover:border-zinc-700 transition"
+          >
+            <div className="space-y-3">
+              <div className="flex justify-between items-start">
+                <span className="font-mono text-xs font-black text-yellow-400 bg-yellow-400/10 px-2.5 py-1 rounded-lg border border-yellow-400/20">
+                  {item.nota}
+                </span>
+                <span
+                  className={`text-[10px] font-black px-2.5 py-1 rounded-full uppercase ${
+                    item.pembayaran === 'LUNAS'
+                      ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                      : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                  }`}
                 >
-                  <div className="flex flex-wrap justify-between items-start gap-2 border-b border-slate-800 pb-3">
-                    <div>
-                      <span className="text-xs font-mono font-bold text-emerald-400">
-                        {item.no_nota}
-                      </span>
-                      <h2 className="text-lg font-bold text-white">
-                        {item.customers?.nama}{' '}
-                        <span className="text-xs font-normal text-slate-400">
-                          ({item.customers?.no_wa})
-                        </span>
-                      </h2>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-xs text-slate-500 block">TAG RAK</span>
-                      <span className="font-black text-amber-400 text-base">
-                        {item.tag_number}
-                      </span>
-                    </div>
-                  </div>
+                  {item.pembayaran}
+                </span>
+              </div>
 
-                  {/* Detail Sepatu */}
-                  {shoe && (
-                    <div className="bg-slate-950 p-3.5 rounded-xl border border-slate-800/80 text-sm space-y-1">
-                      <p>
-                        <span className="text-slate-500">Sepatu:</span>{' '}
-                        <strong className="text-slate-200">{shoe.merek_warna}</strong>
-                      </p>
-                      <p>
-                        <span className="text-slate-500">Layanan:</span>{' '}
-                        <span className="text-emerald-400 font-semibold">{shoe.layanan}</span>
-                      </p>
-                      {shoe.catatan && (
-                        <p className="text-xs text-slate-400 pt-1 italic">
-                          Catatan: {shoe.catatan}
-                        </p>
-                      )}
-                    </div>
-                  )}
+              <div>
+                <h3 className="text-base font-bold text-white">{item.customer}</h3>
+                <p className="text-xs text-zinc-400 font-mono">📱 {item.wa}</p>
+              </div>
 
-                  {/* Controls Selector & Action Buttons */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                    <div>
-                      <label className="text-xs text-slate-400 block mb-1 font-semibold">
-                        Status Pengerjaan:
-                      </label>
-                      <select
-                        value={item.status || 'DITERIMA'}
-                        onChange={(e) => handleUpdateStatus(item.id, e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-emerald-400 font-bold focus:outline-none focus:border-emerald-500"
-                      >
-                        <option value="DITERIMA">DITERIMA</option>
-                        <option value="DIPROSES">DIPROSES</option>
-                        <option value="PENGERINGAN">PENGERINGAN</option>
-                        <option value="SIAP_DIAMBIL">SIAP DIAMBIL</option>
-                        <option value="SELESAI">SELESAI</option>
-                      </select>
-                    </div>
+              <div className="bg-zinc-950 border border-zinc-800/80 p-3 rounded-2xl space-y-1">
+                <p className="text-xs text-zinc-200 font-semibold">{item.sepatu}</p>
+                <p className="text-[11px] text-yellow-400 font-bold">Treatment: {item.treatment}</p>
+              </div>
+            </div>
 
-                    <div>
-                      <label className="text-xs text-slate-400 block mb-1 font-semibold">
-                        Pembayaran (Rp {Number(item.total_biaya).toLocaleString('id-ID')}):
-                      </label>
-                      <select
-                        value={item.status_bayar || 'UNPAID'}
-                        onChange={(e) => handleUpdateBayar(item.id, e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-amber-400 font-bold focus:outline-none focus:border-emerald-500"
-                      >
-                        <option value="PAID">PAID (Lunas)</option>
-                        <option value="DP">DP (Uang Muka)</option>
-                        <option value="UNPAID">UNPAID (Belum Bayar)</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* Action Quick Links */}
-                  <div className="flex gap-2 pt-2 border-t border-slate-800/60">
-                    <button
-                      onClick={() => handleResendWA(item)}
-                      className="flex-1 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-xl text-xs font-bold transition"
-                    >
-                      💬 Kirim WA
-                    </button>
-                    <a
-                      href={`/admin/print/${item.no_nota}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex-1 py-2 text-center bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold transition"
-                    >
-                      🖨️ Cetak Struk
-                    </a>
-                    <a
-                      href={`/track/${item.no_nota}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex-1 py-2 text-center bg-slate-800/50 hover:bg-slate-700 text-slate-400 rounded-xl text-xs font-bold transition"
-                    >
-                      🔗 Tracking
-                    </a>
-                  </div>
-                </div>
-              );
-            })}
+            <div className="pt-3 border-t border-zinc-800/80 space-y-2">
+              <label className="block text-[10px] font-bold text-zinc-500 uppercase">Ubah Status Rak:</label>
+              <select
+                value={item.status}
+                onChange={(e) => updateStatus(item.id, e.target.value as any)}
+                className="w-full bg-zinc-950 border border-zinc-800 text-xs font-bold text-white rounded-xl p-2.5 focus:outline-none focus:border-yellow-400"
+              >
+                <option value="DITERIMA">📥 DITERIMA (Baru Masuk)</option>
+                <option value="PROSES_CUCI">🧼 PROSES CUCI / REPAIR</option>
+                <option value="PENGERINGAN">💨 PENGERINGAN / DETAILING</option>
+                <option value="SIAP_DIAMBIL">✅ SIAP DIAMBIL</option>
+                <option value="SELESAI">🎉 SELESAI / SUDAH DIAMBIL</option>
+              </select>
+            </div>
           </div>
-        )}
+        ))}
       </div>
     </div>
   );
