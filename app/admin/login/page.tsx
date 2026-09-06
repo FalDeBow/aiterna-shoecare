@@ -22,7 +22,8 @@ export default function MultiUserLoginPage() {
       const data = await res.json();
 
       if (res.ok && data.success) {
-        window.location.href = data.redirectUrl;
+        // Membersihkan cache router dan pindah halaman total
+        window.location.replace(data.redirectUrl);
       } else {
         setErrorMsg(data.message || 'PIN Staf Tidak Dikenali!');
         setPin('');
