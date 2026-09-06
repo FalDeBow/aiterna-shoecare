@@ -11,27 +11,33 @@ export default function StaffAdminLayout({ children }: { children: React.ReactNo
   const [staffRole, setStaffRole] = useState('KASIR');
 
   useEffect(() => {
-    const cookies = document.cookie.split('; ').reduce((acc: any, current) => {
-      const [key, value] = current.split('=');
-      if (key && value) acc[key] = value;
-      return acc;
-    }, {});
+    const getCookie = (name: string) => {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop()?.split(';').shift();
+      return null;
+    };
 
-    if (cookies.aiterna_staff_name) {
-      setStaffName(decodeURIComponent(cookies.aiterna_staff_name));
-    }
-    if (cookies.aiterna_staff_role) {
-      setStaffRole(cookies.aiterna_staff_role);
-    }
+    const name = getCookie('aiterna_staff_name');
+    const role = getCookie('aiterna_staff_role');
+
+    if (name) setStaffName(decodeURIComponent(name));
+    if (role) setStaffRole(role);
   }, []);
 
   const handleLogout = async () => {
+    // Hapus cookie lokal browser
+    document.cookie = 'aiterna_admin_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;';
+    document.cookie = 'aiterna_staff_role=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;';
+    document.cookie = 'aiterna_staff_name=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;';
+
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
     } catch (e) {
       console.error(e);
     } finally {
-      window.location.href = '/admin/login';
+      // Paksa browser reload bersih ke login
+      window.location.replace('/admin/login');
     }
   };
 
