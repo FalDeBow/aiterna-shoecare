@@ -68,27 +68,32 @@ export default function KasirPOSPage() {
     try {
       // 1. Simpan Transaksi Nota ke Supabase
       const { error: orderErr } = await supabase.from('orders').insert([orderData]);
-      if (orderErr) throw orderErr;
+      if (orderErr) throw new Error(`Error Orders: ${orderErr.message}`);
 
-      // 2. Upsert Data Pelanggan ke Supabase
-      const { data: existingCust } = await supabase
+      // 2. Cari Data Pelanggan menggunakan maybeSingle (supaya pelanggan baru tidak melempar error)
+      const { data: existingCust, error: custSearchErr } = await supabase
         .from('customers')
         .select('*')
         .eq('no_wa', cleanWa)
-        .single();
+        .maybeSingle();
 
+      if (custSearchErr) throw new Error(`Error Cari Pelanggan: ${custSearchErr.message}`);
+
+      // 3. Update atau Insert Pelanggan
       if (existingCust) {
-        await supabase
+        const { error: custUpdateErr } = await supabase
           .from('customers')
           .update({
             nama: namaCustomer,
             total_transaksi: (existingCust.total_transaksi || 1) + 1,
           })
           .eq('no_wa', cleanWa);
+        if (custUpdateErr) throw new Error(`Error Update Pelanggan: ${custUpdateErr.message}`);
       } else {
-        await supabase.from('customers').insert([
+        const { error: custInsertErr } = await supabase.from('customers').insert([
           { nama: namaCustomer, no_wa: cleanWa, total_transaksi: 1 },
         ]);
+        if (custInsertErr) throw new Error(`Error Tambah Pelanggan: ${custInsertErr.message}`);
       }
 
       setLastOrder({
@@ -97,7 +102,8 @@ export default function KasirPOSPage() {
       });
       setShowReceiptModal(true);
     } catch (err: any) {
-      alert(`Gagal menyimpan transaksi ke database: ${err.message}`);
+      console.error('Detail Error Supabase:', err);
+      alert(`Gagal menyimpan transaksi: ${err.message || err}`);
     } finally {
       setLoading(false);
     }
