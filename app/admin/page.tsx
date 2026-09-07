@@ -1,44 +1,49 @@
 'use client';
 
 import React, { useState } from 'react';
+import { AITERNA_SERVICES, ServiceItem } from '@/lib/services-config';
 
 export default function KasirPOSPage() {
-  // Generasi No. Nota Otomatis
   const [notaId] = useState(`AIT-${new Date().toISOString().slice(2,10).replace(/-/g,'')}-${Math.floor(100 + Math.random() * 900)}`);
   
-  // State Form Kasir
   const [namaCustomer, setNamaCustomer] = useState('');
   const [noWa, setNoWa] = useState('');
-  const [sepatu, setSepatu] = useState('');
-  const [layanan, setLayanan] = useState('Deep Clean');
-  const [harga, setHarga] = useState(50000);
+  const [itemBrand, setItemBrand] = useState('');
+  
+  // State Layanan & Harga Otomatis
+  const [selectedServiceId, setSelectedServiceId] = useState<string>(AITERNA_SERVICES[0].id);
+  const [harga, setHarga] = useState<number>(AITERNA_SERVICES[0].price);
+  
   const [statusBayar, setStatusBayar] = useState('LUNAS');
   const [nominalDP, setNominalDP] = useState(0);
   const [catatan, setCatatan] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
 
-  // Auto-set harga berdasarkan treatment
-  const handleLayananChange = (val: string) => {
-    setLayanan(val);
-    if (val === 'Fast Clean') setHarga(35000);
-    else if (val === 'Deep Clean') setHarga(50000);
-    else if (val === 'Unyellowing') setHarga(40000);
-    else if (val === 'Repaint & Repair') setHarga(120000);
+  // Auto-update harga saat kasir memilih layanan
+  const handleServiceChange = (serviceId: string) => {
+    setSelectedServiceId(serviceId);
+    const found = AITERNA_SERVICES.find((s) => s.id === serviceId);
+    if (found) {
+      setHarga(found.price);
+    }
   };
 
   const handleSubmitNota = (e: React.FormEvent) => {
     e.preventDefault();
-    setSuccessMsg(`Nota ${notaId} Berhasil Dibuat!`);
+    const currentService = AITERNA_SERVICES.find((s) => s.id === selectedServiceId);
+    setSuccessMsg(`Nota ${notaId} (${currentService?.name}) Berhasil Dibuat!`);
 
-    // Reset Form untuk transaksi berikutnya
     setTimeout(() => {
       setSuccessMsg('');
       setNamaCustomer('');
       setNoWa('');
-      setSepatu('');
+      setItemBrand('');
       setCatatan('');
     }, 3000);
   };
+
+  // Grouping Layanan untuk Dropdown Kasir
+  const categories = Array.from(new Set(AITERNA_SERVICES.map((s) => s.categoryLabel)));
 
   return (
     <div className="p-4 sm:p-8 max-w-4xl mx-auto space-y-6">
@@ -62,7 +67,7 @@ export default function KasirPOSPage() {
       <form onSubmit={handleSubmitNota} className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Data Pelanggan & Barang */}
         <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-3xl space-y-4 shadow-xl">
-          <h2 className="text-sm font-black text-yellow-400 uppercase tracking-wider">1. Data Pelanggan & Sepatu</h2>
+          <h2 className="text-sm font-black text-yellow-400 uppercase tracking-wider">1. Data Pelanggan & Barang</h2>
           
           <div>
             <label className="block text-xs font-bold uppercase text-zinc-400 mb-1">Nama Pelanggan</label>
@@ -89,34 +94,39 @@ export default function KasirPOSPage() {
           </div>
 
           <div>
-            <label className="block text-xs font-bold uppercase text-zinc-400 mb-1">Merek & Seri Sepatu/Tas</label>
+            <label className="block text-xs font-bold uppercase text-zinc-400 mb-1">Merek & Detail Barang</label>
             <input
               type="text"
               required
-              placeholder="Contoh: Adidas Samba Size 42"
-              value={sepatu}
-              onChange={(e) => setSepatu(e.target.value)}
+              placeholder="Contoh: Sepatu Adidas Samba / Tas Leather L / Koper Cabin"
+              value={itemBrand}
+              onChange={(e) => setItemBrand(e.target.value)}
               className="w-full p-3 bg-zinc-950 border border-zinc-800 rounded-2xl text-xs text-white focus:outline-none focus:border-yellow-400"
             />
           </div>
         </div>
 
-        {/* Detail Layanan & Pembayaran */}
+        {/* Treatment & Pembayaran */}
         <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-3xl space-y-4 shadow-xl flex flex-col justify-between">
           <div className="space-y-4">
-            <h2 className="text-sm font-black text-yellow-400 uppercase tracking-wider">2. Treatment & Pembayaran</h2>
+            <h2 className="text-sm font-black text-yellow-400 uppercase tracking-wider">2. Layanan & Pembayaran</h2>
 
             <div>
-              <label className="block text-xs font-bold uppercase text-zinc-400 mb-1">Pilihan Treatment</label>
+              <label className="block text-xs font-bold uppercase text-zinc-400 mb-1">Pilih Layanan / Paket</label>
               <select
-                value={layanan}
-                onChange={(e) => handleLayananChange(e.target.value)}
+                value={selectedServiceId}
+                onChange={(e) => handleServiceChange(e.target.value)}
                 className="w-full p-3 bg-zinc-950 border border-zinc-800 rounded-2xl text-xs text-white focus:outline-none focus:border-yellow-400"
               >
-                <option value="Fast Clean">Fast Clean (Rp 35.000)</option>
-                <option value="Deep Clean">Deep Clean (Rp 50.000)</option>
-                <option value="Unyellowing">Unyellowing (Rp 40.000)</option>
-                <option value="Repaint & Repair">Repaint & Repair (Rp 120.000)</option>
+                {categories.map((catLabel) => (
+                  <optgroup key={catLabel} label={catLabel} className="bg-zinc-900 text-yellow-400 font-bold">
+                    {AITERNA_SERVICES.filter((s) => s.categoryLabel === catLabel).map((service) => (
+                      <option key={service.id} value={service.id} className="bg-zinc-950 text-white font-normal">
+                        {service.name} — {service.displayPrice} {service.unit || ''}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
               </select>
             </div>
 
@@ -135,7 +145,7 @@ export default function KasirPOSPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold uppercase text-zinc-400 mb-1">Total Tagihan</label>
+                <label className="block text-xs font-bold uppercase text-zinc-400 mb-1">Total Tagihan (Rp)</label>
                 <input
                   type="number"
                   value={harga}
@@ -162,7 +172,7 @@ export default function KasirPOSPage() {
               <label className="block text-xs font-bold uppercase text-zinc-400 mb-1">Catatan Kondisi (Opsional)</label>
               <input
                 type="text"
-                placeholder="Misal: Sol samping menguning / noda oli"
+                placeholder="Misal: Noda membandel / resleting koper agak macet"
                 value={catatan}
                 onChange={(e) => setCatatan(e.target.value)}
                 className="w-full p-3 bg-zinc-950 border border-zinc-800 rounded-2xl text-xs text-white focus:outline-none focus:border-yellow-400"
