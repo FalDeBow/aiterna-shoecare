@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { AITERNA_SERVICES } from '@/lib/services-config';
 
 export default function AiternaHybridLandingPage() {
   const router = useRouter();
@@ -13,7 +14,7 @@ export default function AiternaHybridLandingPage() {
   // State Form Konsultasi & Pickup Service
   const [nama, setNama] = useState('');
   const [sepatu, setSepatu] = useState('');
-  const [layanan, setLayanan] = useState('Deep Clean');
+  const [layanan, setLayanan] = useState(AITERNA_SERVICES[0].name);
   const [isPickup, setIsPickup] = useState(false);
   const [alamat, setAlamat] = useState('');
   const [catatan, setCatatan] = useState('');
@@ -30,7 +31,7 @@ export default function AiternaHybridLandingPage() {
     const pesan =
       `Halo Aiterna_Shoe! Saya mau konsultasi/booking treatment:\n\n` +
       `• Nama: *${nama}*\n` +
-      `• Sepatu/Tas: *${sepatu}*\n` +
+      `• Merek Item: *${sepatu}*\n` +
       `• Layanan: *${layanan}*\n` +
       `• Layanan Ambil Antar: *${isPickup ? 'YA (Pickup & Delivery)' : 'Tidak (Antar Sendiri ke Store)'}*\n` +
       (isPickup && alamat ? `• Alamat Pickup: _${alamat}_\n` : '') +
@@ -40,6 +41,9 @@ export default function AiternaHybridLandingPage() {
     const waUrl = `https://wa.me/6281234567890?text=${encodeURIComponent(pesan)}`;
     window.open(waUrl, '_blank');
   };
+
+  // Grouping kategori untuk dropdown booking form
+  const serviceCategories = Array.from(new Set(AITERNA_SERVICES.map((s) => s.categoryLabel)));
 
   return (
     <div className="min-h-screen bg-zinc-100 text-zinc-900 font-sans selection:bg-yellow-400 selection:text-zinc-950">
@@ -77,8 +81,7 @@ export default function AiternaHybridLandingPage() {
 
           <nav className="hidden md:flex items-center gap-7 text-xs font-semibold text-zinc-300">
             <a href="#keunggulan" className="hover:text-yellow-400 transition">Mengapa Aiterna</a>
-            <a href="#prioritas" className="hover:text-yellow-400 transition">Komitmen 3K</a>
-            <a href="#layanan" className="hover:text-yellow-400 transition">Katalog Layanan</a>
+            <a href="#layanan" className="hover:text-yellow-400 transition">Katalog Pricelist</a>
             <Link href="/member" className="text-yellow-400 font-bold hover:text-yellow-300 transition flex items-center gap-1">
               ⭐ Membership
             </Link>
@@ -100,7 +103,7 @@ export default function AiternaHybridLandingPage() {
         <div className="max-w-4xl mx-auto text-center space-y-7">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-zinc-950 text-xs font-bold text-yellow-400 shadow-md">
             <span className="w-2 h-2 rounded-full bg-yellow-400 animate-pulse"></span>
-            Toko Reparasi & Laundry Sepatu Tas • Since July 2019
+            Toko Reparasi & Laundry Sepatu, Tas, & Koper • Since July 2019
           </div>
 
           <h1 className="text-4xl sm:text-6xl font-black text-zinc-950 tracking-tight leading-none uppercase">
@@ -111,7 +114,7 @@ export default function AiternaHybridLandingPage() {
           </h1>
 
           <p className="text-sm sm:text-base text-zinc-700 max-w-2xl mx-auto leading-relaxed font-medium">
-            Kembalikan kejayaan dan kesegaran sepatu kesayanganmu. Layanan pencucian, restorasi warna, & repair dengan standar kualitas tinggi serta transparansi status pengerjaan.
+            Bersih Maksimal, Tampil Optimal! Layanan perawatan profesional untuk sepatu, tas, dompet, topi, hingga koper kesayanganmu dengan transparansi status pengerjaan live.
           </p>
 
           {/* Dark Contrast Tracking Box */}
@@ -176,7 +179,7 @@ export default function AiternaHybridLandingPage() {
             </div>
             <h3 className="text-base font-black text-zinc-900">Harga Terjangkau</h3>
             <p className="text-xs text-zinc-600 leading-relaxed font-normal">
-              Semua layanan kami memiliki harga yang ramah dan transparan, baik untuk pelajar, mahasiswa, maupun pekerja.
+              Semua layanan memiliki harga ramah & transparan, lengkap dengan pilihan Paket Hemat untuk perawatan berkala.
             </p>
           </div>
 
@@ -186,7 +189,7 @@ export default function AiternaHybridLandingPage() {
             </div>
             <h3 className="text-base font-black text-zinc-900">Teknisi Berpengalaman</h3>
             <p className="text-xs text-zinc-600 leading-relaxed font-normal">
-              Tim berpengalaman sejak 2019 yang dapat Anda percaya untuk menyelesaikan berbagai masalah kotoran & kerusakan sol.
+              Tim berpengalaman sejak 2019 yang dipercaya menangani bahan sensitif dari Suede, Leather, hingga Koper.
             </p>
           </div>
 
@@ -196,7 +199,7 @@ export default function AiternaHybridLandingPage() {
             </div>
             <h3 className="text-base font-black text-zinc-900">Bahan Alami & Safe</h3>
             <p className="text-xs text-zinc-600 leading-relaxed font-normal">
-              Cairan pembersih khusus dari bahan alami yang aman untuk serat Suede, Leather, Canvas, Nubuck, maupun Knit.
+              Cairan pembersih khusus dari bahan alami yang aman untuk serat material premium tanpa merusak warna asli.
             </p>
           </div>
 
@@ -206,67 +209,108 @@ export default function AiternaHybridLandingPage() {
             </div>
             <h3 className="text-base font-black text-zinc-900">Layanan Ambil Antar</h3>
             <p className="text-xs text-zinc-600 leading-relaxed font-normal">
-              Meningkatkan kenyamanan Anda dengan kurir pickup & delivery langsung ke rumah atau lokasi kantor.
+              Kenyamanan maksimal dengan layanan kurir pickup & delivery langsung ke alamat rumah atau lokasi kantor Anda.
             </p>
           </div>
         </div>
       </section>
 
-      {/* Our Services (Kartu Gelap Dengan Teks Terang) */}
+      {/* Our Services Section (Katalog Pricelist Resmi dari Gambar) */}
       <section id="layanan" className="py-20 px-4 bg-zinc-950 text-white border-y border-zinc-800">
-        <div className="max-w-5xl mx-auto space-y-12">
+        <div className="max-w-6xl mx-auto space-y-12">
           <div className="text-center space-y-2">
-            <span className="text-xs font-bold text-yellow-400 uppercase tracking-widest block">Layanan Terstandarisasi</span>
-            <h2 className="text-2xl sm:text-4xl font-black uppercase text-white">Our Services & Price List</h2>
+            <span className="text-xs font-bold text-yellow-400 uppercase tracking-widest block">Daftar Harga Resmi</span>
+            <h2 className="text-2xl sm:text-4xl font-black uppercase text-white">PRICELIST AITERNA SHOE</h2>
+            <p className="text-xs text-zinc-400 font-medium">Bersih Maksimal, Tampil Optimal!</p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {[
-              {
-                title: 'Fast Clean',
-                price: 'Rp 35.000',
-                desc: 'Pembersihan cepat area luar (upper & midsole). Cepat & praktis untuk pemakaian harian.',
-                time: '1 Hari',
-              },
-              {
-                title: 'Deep Clean',
-                price: 'Rp 50.000',
-                desc: 'Pembersihan total seluruh bagian: upper, insole, midsole, outsole, & tali sepatu.',
-                time: '2-3 Hari',
-                badge: 'Paling Laris',
-              },
-              {
-                title: 'Unyellowing',
-                price: 'Rp 40.000',
-                desc: 'Treatment khusus memulihkan warna menguning akibat oksidasi pada midsole karet/BOOST.',
-                time: '2-3 Hari',
-              },
-              {
-                title: 'Repaint & Repair',
-                price: 'Rp 120.000',
-                desc: 'Restorasi cat warna pudar, pergantian warna baru, serta perbaikan lem/jahitan sol.',
-                time: '4-7 Hari',
-              },
-            ].map((item, idx) => (
-              <div
-                key={idx}
-                className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 flex flex-col justify-between hover:border-yellow-400 transition relative group shadow-xl"
-              >
-                {item.badge && (
-                  <span className="absolute -top-3 right-4 bg-yellow-400 text-zinc-950 text-[10px] font-black px-3 py-0.5 rounded-full shadow uppercase">
-                    {item.badge}
-                  </span>
-                )}
-                <div className="space-y-3">
-                  <h3 className="text-lg font-bold text-white group-hover:text-yellow-400 transition">{item.title}</h3>
-                  <div className="text-2xl font-black text-yellow-400">{item.price}</div>
-                  <p className="text-xs text-zinc-400 leading-relaxed font-light">{item.desc}</p>
-                </div>
-                <div className="pt-4 mt-4 border-t border-zinc-800 text-[11px] text-zinc-500 font-medium">
-                  Estimasi: {item.time}
-                </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            
+            {/* 1. SHOES TREATMENT */}
+            <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 space-y-4 shadow-xl">
+              <div className="flex justify-between items-center border-b border-zinc-800 pb-3">
+                <h3 className="text-base font-black text-yellow-400 uppercase tracking-wider">👟 Shoes Treatment</h3>
+                <span className="text-[10px] bg-yellow-400/10 text-yellow-400 font-bold px-2.5 py-1 rounded-full border border-yellow-400/20">Sepatu</span>
               </div>
-            ))}
+              <ul className="space-y-2.5 text-xs">
+                {AITERNA_SERVICES.filter((s) => s.category === 'SHOES').map((item) => (
+                  <li key={item.id} className="flex justify-between items-center">
+                    <span className="text-zinc-300 font-medium">{item.name}</span>
+                    <span className="font-mono font-bold text-yellow-400">{item.displayPrice}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* 2. PAKET HEMAT */}
+            <div className="bg-zinc-900 border border-yellow-400/40 rounded-3xl p-6 space-y-4 shadow-xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 bg-yellow-400 text-zinc-950 text-[9px] font-black px-3 py-1 rounded-bl-xl uppercase">
+                Lebih Banyak, Lebih Hemat!
+              </div>
+              <div className="flex justify-between items-center border-b border-zinc-800 pb-3">
+                <h3 className="text-base font-black text-yellow-400 uppercase tracking-wider">📦 Paket Hemat</h3>
+                <span className="text-[10px] bg-yellow-400 text-zinc-950 font-black px-2.5 py-1 rounded-full">Best Value</span>
+              </div>
+              <ul className="space-y-3 text-xs">
+                {AITERNA_SERVICES.filter((s) => s.category === 'PAKET_HEMAT').map((item) => (
+                  <li key={item.id} className="flex justify-between items-center bg-zinc-950 p-2.5 rounded-xl border border-zinc-800/80">
+                    <span className="text-white font-bold">{item.name}</span>
+                    <span className="font-mono font-black text-yellow-400">
+                      {item.displayPrice} {item.unit || ''}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* 3. BAG CARE */}
+            <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 space-y-4 shadow-xl">
+              <div className="flex justify-between items-center border-b border-zinc-800 pb-3">
+                <h3 className="text-base font-black text-yellow-400 uppercase tracking-wider">🎒 Bag Care</h3>
+                <span className="text-[10px] bg-yellow-400/10 text-yellow-400 font-bold px-2.5 py-1 rounded-full border border-yellow-400/20">Tas</span>
+              </div>
+              <ul className="space-y-2.5 text-xs">
+                {AITERNA_SERVICES.filter((s) => s.category === 'BAG').map((item) => (
+                  <li key={item.id} className="flex justify-between items-center">
+                    <span className="text-zinc-300 font-medium">{item.name}</span>
+                    <span className="font-mono font-bold text-yellow-400">{item.displayPrice}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* 4. WALLET & HAT */}
+            <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 space-y-4 shadow-xl">
+              <div className="flex justify-between items-center border-b border-zinc-800 pb-3">
+                <h3 className="text-base font-black text-yellow-400 uppercase tracking-wider">🧢 Wallet & Hat</h3>
+                <span className="text-[10px] bg-yellow-400/10 text-yellow-400 font-bold px-2.5 py-1 rounded-full border border-yellow-400/20">Aksesori</span>
+              </div>
+              <ul className="space-y-3 text-xs">
+                {AITERNA_SERVICES.filter((s) => s.category === 'ACCESSORIES').map((item) => (
+                  <li key={item.id} className="flex justify-between items-center">
+                    <span className="text-zinc-300 font-medium">{item.name}</span>
+                    <span className="font-mono font-bold text-yellow-400">{item.displayPrice}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* 5. KOPER CARE */}
+            <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 space-y-4 shadow-xl">
+              <div className="flex justify-between items-center border-b border-zinc-800 pb-3">
+                <h3 className="text-base font-black text-yellow-400 uppercase tracking-wider">🧳 Koper Care</h3>
+                <span className="text-[10px] bg-yellow-400/10 text-yellow-400 font-bold px-2.5 py-1 rounded-full border border-yellow-400/20">Koper</span>
+              </div>
+              <ul className="space-y-3 text-xs">
+                {AITERNA_SERVICES.filter((s) => s.category === 'KOPER').map((item) => (
+                  <li key={item.id} className="flex justify-between items-center">
+                    <span className="text-zinc-300 font-medium">{item.name}</span>
+                    <span className="font-mono font-bold text-yellow-400">{item.displayPrice}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
           </div>
         </div>
       </section>
@@ -334,10 +378,10 @@ export default function AiternaHybridLandingPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-bold uppercase text-zinc-400 mb-1">Merek Sepatu / Tas</label>
+              <label className="block text-xs font-bold uppercase text-zinc-400 mb-1">Merek & Jenis Barang</label>
               <input
                 type="text"
-                placeholder="Contoh: Adidas Samba / Tas Leather"
+                placeholder="Contoh: Adidas Samba / Tas Leather / Koper Cabin"
                 required
                 value={sepatu}
                 onChange={(e) => setSepatu(e.target.value)}
@@ -346,16 +390,21 @@ export default function AiternaHybridLandingPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-bold uppercase text-zinc-400 mb-1">Pilihan Treatment</label>
+              <label className="block text-xs font-bold uppercase text-zinc-400 mb-1">Pilihan Treatment / Paket</label>
               <select
                 value={layanan}
                 onChange={(e) => setLayanan(e.target.value)}
                 className="w-full p-3 bg-zinc-900 border border-zinc-800 rounded-2xl text-xs sm:text-sm text-white focus:outline-none focus:border-yellow-400"
               >
-                <option value="Fast Clean">Fast Clean (Rp 35.000)</option>
-                <option value="Deep Clean">Deep Clean (Rp 50.000)</option>
-                <option value="Unyellowing">Unyellowing (Rp 40.000)</option>
-                <option value="Repaint & Repair">Repaint & Repair (Rp 120.000)</option>
+                {serviceCategories.map((catLabel) => (
+                  <optgroup key={catLabel} label={catLabel} className="bg-zinc-900 text-yellow-400 font-bold">
+                    {AITERNA_SERVICES.filter((s) => s.categoryLabel === catLabel).map((service) => (
+                      <option key={service.id} value={`${service.name} (${service.displayPrice})`} className="bg-zinc-950 text-white font-normal">
+                        {service.name} — {service.displayPrice} {service.unit || ''}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
               </select>
             </div>
 
@@ -388,7 +437,7 @@ export default function AiternaHybridLandingPage() {
               <label className="block text-xs font-bold uppercase text-zinc-400 mb-1">Catatan Tambahan (Opsional)</label>
               <input
                 type="text"
-                placeholder="Misal: Ada noda oli / minta perbaiki lem sol"
+                placeholder="Misal: Ada noda oli / resleting agak macet"
                 value={catatan}
                 onChange={(e) => setCatatan(e.target.value)}
                 className="w-full p-3 bg-zinc-900 border border-zinc-800 rounded-2xl text-xs sm:text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-yellow-400"
@@ -411,7 +460,7 @@ export default function AiternaHybridLandingPage() {
           <div className="space-y-3">
             <span className="text-base font-black tracking-wider text-white">AITERNA_SHOE</span>
             <p className="leading-relaxed font-normal">
-              Toko Reparasi & Perawatan Sepatu dan Tas. Laundry, Reglue, Repaint & Unyellowing sejak Juli 2019.
+              Toko Reparasi & Perawatan Sepatu, Tas, & Koper. Laundry, Reglue, Repaint & Unyellowing sejak Juli 2019.
             </p>
           </div>
 
