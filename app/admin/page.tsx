@@ -1,36 +1,32 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { AITERNA_SERVICES, ServiceItem } from '@/lib/services-config';
+import { AITERNA_SERVICES } from '@/lib/services-config';
+import { supabase } from '@/lib/supabase';
 
 export default function KasirPOSPage() {
-  // Generasi No. Nota Otomatis
   const [notaId, setNotaId] = useState('');
+  const [loading, setLoading] = useState(false);
   
   useEffect(() => {
     setNotaId(`AIT-${new Date().toISOString().slice(2,10).replace(/-/g,'')}-${Math.floor(100 + Math.random() * 900)}`);
   }, []);
 
-  // State Form Kasir
+  // Form State
   const [namaCustomer, setNamaCustomer] = useState('');
   const [noWa, setNoWa] = useState('');
   const [itemBrand, setItemBrand] = useState('');
-  
-  // State Layanan & Harga
   const [selectedServiceId, setSelectedServiceId] = useState<string>(AITERNA_SERVICES[0].id);
   const [harga, setHarga] = useState<number>(AITERNA_SERVICES[0].price);
-  
-  // State Pembayaran
   const [statusBayar, setStatusBayar] = useState<'LUNAS' | 'DP' | 'BELUM_BAYAR'>('LUNAS');
   const [metodeBayar, setMetodeBayar] = useState<'CASH' | 'QRIS' | 'TRANSFER' | 'DEBIT_CC'>('QRIS');
   const [nominalDiterima, setNominalDiterima] = useState<number>(AITERNA_SERVICES[0].price);
   const [catatan, setCatatan] = useState('');
 
-  // State Modal Struk Pratinjau
+  // Modal State
   const [showReceiptModal, setShowReceiptModal] = useState(false);
   const [lastOrder, setLastOrder] = useState<any>(null);
 
-  // Auto-set harga saat pilih layanan
   const handleServiceChange = (serviceId: string) => {
     setSelectedServiceId(serviceId);
     const found = AITERNA_SERVICES.find((s) => s.id === serviceId);
@@ -40,72 +36,102 @@ export default function KasirPOSPage() {
     }
   };
 
-  // Hitung Kembalian / Sisa Tagihan
   const totalTagihan = harga;
   const nominalBayarRiil = statusBayar === 'BELUM_BAYAR' ? 0 : nominalDiterima;
   const kembalian = statusBayar === 'LUNAS' && metodeBayar === 'CASH' ? Math.max(0, nominalDiterima - totalTagihan) : 0;
   const sisaPiutang = statusBayar === 'DP' ? Math.max(0, totalTagihan - nominalDiterima) : statusBayar === 'BELUM_BAYAR' ? totalTagihan : 0;
 
-  const handleSubmitNota = (e: React.FormEvent) => {
+  const handleSubmitNota = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
 
     const selectedService = AITERNA_SERVICES.find((s) => s.id === selectedServiceId);
+    let cleanWa = noWa.replace(/\D/g, '');
+    if (cleanWa.startsWith('0')) cleanWa = '62' + cleanWa.slice(1);
 
     const orderData = {
-      notaId,
-      tgl: new Date().toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }),
-      namaCustomer,
-      noWa,
-      itemBrand,
-      serviceName: selectedService?.name || 'Treatment',
-      hargaTotal: totalTagihan,
-      statusBayar,
-      metodeBayar,
-      nominalDiterima: nominalBayarRiil,
+      nota_id: notaId,
+      customer_nama: namaCustomer,
+      customer_wa: cleanWa,
+      item_brand: itemBrand,
+      service_name: selectedService?.name || 'Treatment',
+      harga_total: totalTagihan,
+      status_bayar: statusBayar,
+      metode_bayar: metodeBayar,
+      nominal_diterima: nominalBayarRiil,
       kembalian,
-      sisaPiutang,
+      sisa_piutang: sisaPiutang,
       catatan,
+      status_rak: 'DITERIMA',
     };
 
-    setLastOrder(orderData);
-    setShowReceiptModal(true);
+    try {
+      // 1. Simpan Transaksi Nota ke Supabase
+      const { error: orderErr } = await supabase.from('orders').insert([orderData]);
+      if (orderErr) throw orderErr;
+
+      // 2. Upsert Data Pelanggan ke Supabase
+      const { data: existingCust } = await supabase
+        .from('customers')
+        .select('*')
+        .eq('no_wa', cleanWa)
+        .single();
+
+      if (existingCust) {
+        await supabase
+          .from('customers')
+          .update({
+            nama: namaCustomer,
+            total_transaksi: (existingCust.total_transaksi || 1) + 1,
+          })
+          .eq('no_wa', cleanWa);
+      } else {
+        await supabase.from('customers').insert([
+          { nama: namaCustomer, no_wa: cleanWa, total_transaksi: 1 },
+        ]);
+      }
+
+      setLastOrder({
+        ...orderData,
+        tgl: new Date().toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }),
+      });
+      setShowReceiptModal(true);
+    } catch (err: any) {
+      alert(`Gagal menyimpan transaksi ke database: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleKirimWA = () => {
     if (!lastOrder) return;
-
-    // Bersihkan nomor WA
-    let cleanWa = lastOrder.noWa.replace(/\D/g, '');
-    if (cleanWa.startsWith('0')) cleanWa = '62' + cleanWa.slice(1);
-
     const teksPesan = 
       `*AITERNA SHOE & BAG CARE*\n` +
       `_Shine And Clean • Since July 2019_\n` +
       `----------------------------------------\n` +
       `🧾 *NOTA TRANSAKSI DIGITAL*\n` +
-      `No. Nota : *${lastOrder.notaId}*\n` +
+      `No. Nota : *${lastOrder.nota_id}*\n` +
       `Tanggal  : ${lastOrder.tgl}\n\n` +
       `👤 *Data Pelanggan:*\n` +
-      `• Nama  : ${lastOrder.namaCustomer}\n` +
-      `• Barang: ${lastOrder.itemBrand}\n\n` +
+      `• Nama  : ${lastOrder.customer_nama}\n` +
+      `• Barang: ${lastOrder.item_brand}\n\n` +
       `🛠️ *Detail Treatment:*\n` +
-      `• Layanan: *${lastOrder.serviceName}*\n` +
-      `• Biaya   : Rp ${lastOrder.hargaTotal.toLocaleString('id-ID')}\n` +
+      `• Layanan: *${lastOrder.service_name}*\n` +
+      `• Biaya   : Rp ${lastOrder.harga_total.toLocaleString('id-ID')}\n` +
       (lastOrder.catatan ? `• Catatan : _${lastOrder.catatan}_\n` : '') +
       `----------------------------------------\n` +
       `💳 *Pembayaran:*\n` +
-      `• Status  : *${lastOrder.statusBayar}*\n` +
-      `• Metode  : ${lastOrder.metodeBayar}\n` +
-      `• Dibayar : Rp ${lastOrder.nominalDiterima.toLocaleString('id-ID')}\n` +
-      (lastOrder.sisaPiutang > 0 ? `• Sisa DP : *Rp ${lastOrder.sisaPiutang.toLocaleString('id-ID')}*\n` : '') +
+      `• Status  : *${lastOrder.status_bayar}*\n` +
+      `• Metode  : ${lastOrder.metode_bayar}\n` +
+      `• Dibayar : Rp ${lastOrder.nominal_diterima.toLocaleString('id-ID')}\n` +
+      (lastOrder.sisa_piutang > 0 ? `• Sisa DP : *Rp ${lastOrder.sisa_piutang.toLocaleString('id-ID')}*\n` : '') +
       (lastOrder.kembalian > 0 ? `• Kembalian: Rp ${lastOrder.kembalian.toLocaleString('id-ID')}\n` : '') +
       `----------------------------------------\n` +
       `🔍 *Cek Status Pengerjaan Live:*\n` +
-      `Pantau progres barangmu di web:\n` +
-      `https://aiterna-shoecare.vercel.app\n\n` +
+      `https://aiterna-shoecare.vercel.app/track/${lastOrder.nota_id}\n\n` +
       `_Terima kasih telah mempercayakan perawatan item kesayanganmu di Aiterna!_ 🙏`;
 
-    window.open(`https://wa.me/${cleanWa}?text=${encodeURIComponent(teksPesan)}`, '_blank');
+    window.open(`https://wa.me/${lastOrder.customer_wa}?text=${encodeURIComponent(teksPesan)}`, '_blank');
   };
 
   const handleResetForm = () => {
@@ -121,7 +147,6 @@ export default function KasirPOSPage() {
 
   return (
     <div className="p-4 sm:p-8 max-w-4xl mx-auto space-y-6">
-      {/* Header Banner */}
       <div className="flex flex-wrap justify-between items-center gap-4 bg-zinc-900 border border-zinc-800 p-6 rounded-3xl shadow-xl">
         <div>
           <span className="text-xs font-bold text-yellow-400 uppercase tracking-widest block">Point of Sale</span>
@@ -134,7 +159,6 @@ export default function KasirPOSPage() {
       </div>
 
       <form onSubmit={handleSubmitNota} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* 1. Data Pelanggan & Barang */}
         <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-3xl space-y-4 shadow-xl">
           <h2 className="text-sm font-black text-yellow-400 uppercase tracking-wider">1. Data Pelanggan & Barang</h2>
           
@@ -178,7 +202,7 @@ export default function KasirPOSPage() {
             <label className="block text-xs font-bold uppercase text-zinc-400 mb-1">Catatan Kondisi (Opsional)</label>
             <input
               type="text"
-              placeholder="Misal: Noda oli di vamp / sol samping terkelupas"
+              placeholder="Misal: Noda oli di vamp / sol terkelupas"
               value={catatan}
               onChange={(e) => setCatatan(e.target.value)}
               className="w-full p-3 bg-zinc-950 border border-zinc-800 rounded-2xl text-xs text-white focus:outline-none focus:border-yellow-400"
@@ -186,7 +210,6 @@ export default function KasirPOSPage() {
           </div>
         </div>
 
-        {/* 2. Treatment & Metode Pembayaran */}
         <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-3xl space-y-4 shadow-xl flex flex-col justify-between">
           <div className="space-y-4">
             <h2 className="text-sm font-black text-yellow-400 uppercase tracking-wider">2. Layanan & Pembayaran</h2>
@@ -263,38 +286,22 @@ export default function KasirPOSPage() {
                 />
               </div>
             </div>
-
-            {/* Indicator Kembalian / Sisa DP */}
-            {statusBayar === 'LUNAS' && metodeBayar === 'CASH' && kembalian > 0 && (
-              <div className="bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-2xl flex justify-between items-center text-xs">
-                <span className="text-emerald-400 font-bold">Kembalian Kasir:</span>
-                <span className="text-emerald-400 font-mono font-black text-sm">Rp {kembalian.toLocaleString('id-ID')}</span>
-              </div>
-            )}
-
-            {statusBayar === 'DP' && sisaPiutang > 0 && (
-              <div className="bg-amber-500/10 border border-amber-500/20 p-3 rounded-2xl flex justify-between items-center text-xs">
-                <span className="text-amber-400 font-bold">Sisa Tagihan (Pelunasan):</span>
-                <span className="text-amber-400 font-mono font-black text-sm">Rp {sisaPiutang.toLocaleString('id-ID')}</span>
-              </div>
-            )}
           </div>
 
           <button
             type="submit"
-            className="w-full bg-yellow-400 hover:bg-yellow-300 text-zinc-950 font-black py-4 rounded-2xl transition active:scale-95 uppercase tracking-wide text-xs shadow-lg shadow-yellow-400/10 mt-4"
+            disabled={loading}
+            className="w-full bg-yellow-400 hover:bg-yellow-300 text-zinc-950 font-black py-4 rounded-2xl transition active:scale-95 uppercase tracking-wide text-xs shadow-lg shadow-yellow-400/10 mt-4 disabled:opacity-50"
           >
-            SIMPAN & GENERATE STRUK NOTA
+            {loading ? 'MENYIMPAN KE DATABASE...' : 'SIMPAN & GENERATE STRUK NOTA'}
           </button>
         </div>
       </form>
 
-      {/* POP-UP MODAL STRUK NOTA DIGITAL */}
+      {/* Pop-up Modal Struk Nota Digital */}
       {showReceiptModal && lastOrder && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-zinc-900 border border-zinc-800 w-full max-w-sm rounded-3xl p-6 space-y-5 text-white shadow-2xl relative animate-in fade-in zoom-in duration-150">
-            
-            {/* Header Struk */}
+          <div className="bg-zinc-900 border border-zinc-800 w-full max-w-sm rounded-3xl p-6 space-y-5 text-white shadow-2xl relative">
             <div className="text-center space-y-1 border-b border-zinc-800 pb-4">
               <div className="w-10 h-10 bg-yellow-400 rounded-full mx-auto flex items-center justify-center text-zinc-950 font-black text-base shadow-md mb-2">
                 A
@@ -303,48 +310,34 @@ export default function KasirPOSPage() {
               <p className="text-[10px] text-zinc-400 font-medium">Shine And Clean • Since July 2019</p>
             </div>
 
-            {/* Detail Transaksi Struk */}
             <div className="space-y-2 text-xs font-mono bg-zinc-950 p-4 rounded-2xl border border-zinc-800/80">
               <div className="flex justify-between text-yellow-400 font-bold">
-                <span>NOTA: {lastOrder.notaId}</span>
+                <span>NOTA: {lastOrder.nota_id}</span>
               </div>
               <p className="text-[10px] text-zinc-500">{lastOrder.tgl}</p>
 
               <div className="border-t border-dashed border-zinc-800 my-2 pt-2 space-y-1 text-zinc-300">
-                <p>Pelanggan: <span className="text-white font-bold">{lastOrder.namaCustomer}</span></p>
-                <p>Item: {lastOrder.itemBrand}</p>
-                <p>Treatment: <span className="text-yellow-400 font-bold">{lastOrder.serviceName}</span></p>
+                <p>Pelanggan: <span className="text-white font-bold">{lastOrder.customer_nama}</span></p>
+                <p>Item: {lastOrder.item_brand}</p>
+                <p>Treatment: <span className="text-yellow-400 font-bold">{lastOrder.service_name}</span></p>
               </div>
 
               <div className="border-t border-dashed border-zinc-800 my-2 pt-2 space-y-1">
                 <div className="flex justify-between">
                   <span>Total Biaya</span>
-                  <span>Rp {lastOrder.hargaTotal.toLocaleString('id-ID')}</span>
+                  <span>Rp {lastOrder.harga_total.toLocaleString('id-ID')}</span>
                 </div>
                 <div className="flex justify-between text-zinc-400">
                   <span>Metode</span>
-                  <span>{lastOrder.metodeBayar}</span>
+                  <span>{lastOrder.metode_bayar}</span>
                 </div>
                 <div className="flex justify-between text-zinc-400">
                   <span>Status</span>
-                  <span className="font-bold text-white">{lastOrder.statusBayar}</span>
+                  <span className="font-bold text-white">{lastOrder.status_bayar}</span>
                 </div>
-                {lastOrder.sisaPiutang > 0 && (
-                  <div className="flex justify-between text-amber-400 font-bold">
-                    <span>Sisa DP</span>
-                    <span>Rp {lastOrder.sisaPiutang.toLocaleString('id-ID')}</span>
-                  </div>
-                )}
-                {lastOrder.kembalian > 0 && (
-                  <div className="flex justify-between text-emerald-400 font-bold">
-                    <span>Kembalian</span>
-                    <span>Rp {lastOrder.kembalian.toLocaleString('id-ID')}</span>
-                  </div>
-                )}
               </div>
             </div>
 
-            {/* Tombol Aksi Struk */}
             <div className="space-y-2 pt-1">
               <button
                 onClick={handleKirimWA}
@@ -368,11 +361,9 @@ export default function KasirPOSPage() {
                 </button>
               </div>
             </div>
-
           </div>
         </div>
       )}
-
     </div>
   );
 }
