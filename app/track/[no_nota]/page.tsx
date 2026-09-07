@@ -1,128 +1,104 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import React, { useEffect, useState, use } from 'react';
+import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 
-export default function TrackingPage() {
-  const params = useParams();
-  const noNota = params?.no_nota as string;
+export default function PublicTrackPage({ params }: { params: Promise<{ nota: string }> }) {
+  const resolvedParams = use(params);
+  const notaParam = resolvedParams.nota;
 
   const [order, setOrder] = useState<any>(null);
-  const [shoeItem, setShoeItem] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchOrder() {
-      if (!noNota) return;
-
-      // Ambil data order berdasarkan no_nota
-      const { data: orderData } = await supabase
+    const fetchOrder = async () => {
+      setLoading(true);
+      const { data } = await supabase
         .from('orders')
-        .select('*, customers(nama)')
-        .eq('no_nota', noNota)
+        .select('*')
+        .eq('nota_id', notaParam)
         .single();
 
-      if (orderData) {
-        setOrder(orderData);
-        // Ambil detail sepatu
-        const { data: itemData } = await supabase
-          .from('shoe_items')
-          .select('*')
-          .eq('order_id', orderData.id)
-          .single();
-
-        setShoeItem(itemData);
-      }
+      if (data) setOrder(data);
       setLoading(false);
-    }
+    };
 
     fetchOrder();
-  }, [noNota]);
+  }, [notaParam]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-900 text-white flex items-center justify-center p-4">
-        <p className="animate-pulse font-medium">Memuat data pengerjaan...</p>
-      </div>
-    );
-  }
+  const steps = [
+    { key: 'DITERIMA', label: '📥 Barang Diterima', desc: 'Barang sudah masuk workshop Aiterna' },
+    { key: 'PROSES_CUCI', label: '🧼 Proses Treatment', desc: 'Pembersihan / perbaikan sedang dilakukan' },
+    { key: 'PENGERINGAN', label: '💨 Pengeringan & Quality Check', desc: 'Pengeringan suhu terkontrol & inspeksi akhir' },
+    { key: 'SIAP_DIAMBIL', label: '✅ Siap Diambil / Dikirim', desc: 'Barang sudah wangi & siap diambil di store' },
+    { key: 'SELESAI', label: '🎉 Selesai', desc: 'Barang telah diterima kembali oleh pemilik' },
+  ];
 
-  if (!order) {
-    return (
-      <div className="min-h-screen bg-slate-900 text-white flex items-center justify-center p-4">
-        <div className="text-center bg-slate-800 p-6 rounded-2xl max-w-sm w-full border border-slate-700">
-          <h2 className="text-xl font-bold mb-2">Nota Tidak Ditemukan</h2>
-          <p className="text-slate-400 text-sm">
-            Pastikan nomor nota yang kamu masukkan sudah benar.
-          </p>
-        </div>
-      </div>
-    );
-  }
+  const getStepIndex = (status: string) => steps.findIndex((s) => s.key === status);
+  const currentStepIndex = order ? getStepIndex(order.status_rak) : 0;
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-4 font-sans">
-      <div className="max-w-md mx-auto bg-slate-900 rounded-2xl shadow-2xl overflow-hidden border border-slate-800 my-6">
-        {/* Header Branding */}
-        <div className="bg-black p-5 text-center border-b border-slate-800">
-          <h1 className="text-2xl font-black tracking-wider text-white">AITERNA</h1>
-          <p className="text-xs text-slate-400 uppercase tracking-widest mt-1">
-            Shoecare & Restoration
-          </p>
-        </div>
-
-        {/* Content Status */}
-        <div className="p-6 space-y-6">
-          <div className="bg-slate-800/60 p-4 rounded-xl border border-slate-700/50">
-            <p className="text-xs text-slate-400 uppercase font-semibold">Nomor Nota</p>
-            <p className="text-lg font-mono font-bold text-white">{order.no_nota}</p>
-            <p className="text-sm text-slate-300 mt-1">
-              Pelanggan: <span className="font-semibold">{order.customers?.nama}</span>
-            </p>
-          </div>
-
-          {/* Status Badge */}
-          <div className="text-center py-2">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-2">
-              Status Pengerjaan Saat Ini
-            </span>
-            <span className="inline-block bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-extrabold text-sm px-4 py-2 rounded-full uppercase tracking-wide">
-              {order.status || 'DITERIMA'}
-            </span>
-          </div>
-
-          {/* Detail Sepatu */}
-          {shoeItem && (
-            <div className="border-t border-slate-800 pt-4 space-y-2">
-              <h3 className="text-xs font-semibold text-slate-400 uppercase">
-                Detail Perawatan
-              </h3>
-              <div className="bg-slate-800/30 p-3 rounded-lg text-sm space-y-1">
-                <p>
-                  <span className="text-slate-400">Sepatu:</span> {shoeItem.merek_warna}
-                </p>
-                <p>
-                  <span className="text-slate-400">Layanan:</span> {shoeItem.layanan}
-                </p>
-                <p>
-                  <span className="text-slate-400">Tag Rak:</span> {order.tag_number}
-                </p>
-              </div>
+    <div className="min-h-screen bg-zinc-950 text-white p-4 sm:p-8 font-sans flex flex-col items-center justify-center">
+      <div className="w-full max-w-md bg-zinc-900 border border-zinc-800 rounded-3xl p-6 shadow-2xl space-y-6">
+        <div className="text-center border-b border-zinc-800 pb-4">
+          <Link href="/" className="inline-block mb-2">
+            <div className="w-10 h-10 bg-yellow-400 rounded-full mx-auto flex items-center justify-center text-zinc-950 font-black text-lg">
+              A
             </div>
-          )}
-
-          {/* Info Pembayaran */}
-          <div className="flex justify-between items-center bg-slate-800/40 p-4 rounded-xl text-sm border border-slate-800">
-            <span className="text-slate-400">Status Bayar:</span>
-            <span className="font-bold text-emerald-400 uppercase">
-              {order.status_bayar} (Rp {Number(order.total_biaya).toLocaleString('id-ID')})
-            </span>
-          </div>
+          </Link>
+          <h1 className="text-lg font-black text-white">AITERNA LIVE TRACKING</h1>
+          <p className="text-xs text-yellow-400 font-mono font-bold">{notaParam}</p>
         </div>
 
-        <div className="bg-slate-950 p-4 text-center border-t border-slate-900 text-xs text-slate-500">
-          Aiterna Shoecare • Terima Kasih atas Kepercayaan Anda
+        {loading ? (
+          <p className="text-center text-xs text-zinc-500 py-8">Mencari data nota...</p>
+        ) : !order ? (
+          <div className="text-center py-8 space-y-3">
+            <p className="text-xs text-rose-400 font-bold">Nota tidak ditemukan.</p>
+            <p className="text-[11px] text-zinc-500">Pastikan nomor nota yang Anda ketik sudah benar.</p>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {/* Info Singkat */}
+            <div className="bg-zinc-950 p-4 rounded-2xl border border-zinc-800/80 space-y-1 text-xs">
+              <p className="text-zinc-400">Pemilik: <span className="text-white font-bold">{order.customer_nama}</span></p>
+              <p className="text-zinc-400">Barang: <span className="text-white font-bold">{order.item_brand}</span></p>
+              <p className="text-zinc-400">Layanan: <span className="text-yellow-400 font-bold">{order.service_name}</span></p>
+            </div>
+
+            {/* Timeline Progress Status */}
+            <div className="space-y-4 relative pl-4 border-l-2 border-zinc-800">
+              {steps.map((step, idx) => {
+                const isPassed = idx <= currentStepIndex;
+                const isCurrent = idx === currentStepIndex;
+
+                return (
+                  <div key={step.key} className="relative pl-4 space-y-0.5">
+                    <div
+                      className={`absolute -left-[21px] top-0.5 w-4 h-4 rounded-full border-2 ${
+                        isCurrent
+                          ? 'bg-yellow-400 border-yellow-300 animate-pulse'
+                          : isPassed
+                          ? 'bg-emerald-400 border-emerald-300'
+                          : 'bg-zinc-900 border-zinc-700'
+                      }`}
+                    />
+                    <h3 className={`text-xs font-bold ${isCurrent ? 'text-yellow-400' : isPassed ? 'text-white' : 'text-zinc-600'}`}>
+                      {step.label}
+                    </h3>
+                    <p className="text-[10px] text-zinc-500 leading-tight">{step.desc}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        <div className="pt-2 border-t border-zinc-800 text-center">
+          <Link href="/" className="text-xs font-bold text-yellow-400 hover:underline">
+            ← Kembali ke Utama
+          </Link>
         </div>
       </div>
     </div>
